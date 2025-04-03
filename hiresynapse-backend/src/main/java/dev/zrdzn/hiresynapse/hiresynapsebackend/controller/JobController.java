@@ -1,7 +1,10 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.controller;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.JobService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,8 +19,8 @@ public class JobController {
     }
 
     @PostMapping
-    public void createJob() {
-
+    public Job createJob(@AuthenticationPrincipal String requesterId, @RequestBody Job job) {
+        return jobService.initiateJobCreation(requesterId, job);
     }
 
 }

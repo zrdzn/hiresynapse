@@ -1,6 +1,11 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskEntity;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskEntityType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -9,10 +14,13 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Document(collection = "candidates")
-public class Candidate {
+public class Candidate implements TaskEntity {
 
     @Id
+    @Nullable
     private String id;
 
     private String firstName;
@@ -32,5 +40,10 @@ public class Candidate {
     private List<String> certificates;
     private List<String> references;
     private double salaryExpectation;
+
+    @Override
+    public TaskEntityType getType() {
+        return TaskEntityType.CANDIDATE;
+    }
 
 }

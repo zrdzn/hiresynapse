@@ -1,5 +1,7 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskEntity;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskEntityType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "jobs")
-public class Job {
+public class Job implements TaskEntity {
 
     @Id
     @Nullable
@@ -26,7 +28,11 @@ public class Job {
     private double salary;
     private int requiredExperience;
     private String status;
-    private ProcessStatus processStatus;
     private List<String> requirements;
+
+    @Override
+    public TaskEntityType getType() {
+        return TaskEntityType.JOB;
+    }
 
 }
