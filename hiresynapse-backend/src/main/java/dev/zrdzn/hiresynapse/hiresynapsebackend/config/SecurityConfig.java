@@ -1,16 +1,15 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.service.CustomOidcUserService;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationFilter;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
@@ -20,18 +19,41 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final String clientUrl;
+    private final UserService userService;
 
-    public SecurityConfig(@Value("${client.url}") String clientUrl) {
-        this.clientUrl = clientUrl;
+    public SecurityConfig(UserService userService) {
+        this.userService = userService;
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) {
-        http
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
             .authorizeHttpRequests(
                 auth ->
-                    auth.anyRequest().permitAll()
+                    auth
+                        .requestMatchers("/login").permitAll()
+                        .requestMatchers("/login/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .anyRequest().authenticated()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo.oidcUserService(new CustomOidcUserService(userService)))
+                .loginProcessingUrl("/v1/login/oauth2/code/*")
+                .defaultSuccessUrl("/v1", true)
+                .successHandler((request, response, authentication) -> {
+                    response.sendRedirect("/v1");
+                })
+                .failureUrl("/v1/login?error=true")
+                .failureHandler((request, response, exception) -> {
+                    response.sendRedirect("/v1/login?error=true");
+                })
+            )
+            .logout(logout ->
+                logout
+                    .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                    .logoutSuccessUrl("/")
+                    .invalidateHttpSession(true)
+                    .deleteCookies("JSESSIONID")
             )
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors ->
@@ -40,7 +62,7 @@ public class SecurityConfig {
                         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                         CorsConfiguration config = new CorsConfiguration();
 
-                        config.setAllowedOrigins(List.of(clientUrl));
+                        config.setAllowedOrigins(List.of("http://localhost:3000", "https://dev-2x7pq0i3.us.auth0.com"));
                         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"));
                         config.setAllowedHeaders(List.of(
                             "Content-Type",
@@ -58,15 +80,7 @@ public class SecurityConfig {
                     }
                 )
             )
-            .addFilterBefore(new AuthFilter(), UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling(
-                exception ->
-                    exception.authenticationEntryPoint(
-                        (request, response, authException) ->
-                            response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase())
-                    )
-            )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .build();
     }
 

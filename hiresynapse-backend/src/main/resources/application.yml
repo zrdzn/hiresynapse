@@ -3,6 +3,28 @@ spring:
     mongodb:
       uri: mongodb://admin:password@localhost:27017/admin
 
+  security:
+    oauth2:
+      client:
+        registration:
+          auth0:
+            client-id: ${AUTH0_CLIENT_ID}
+            client-secret: ${AUTH0_CLIENT_SECRET}
+            scope: openid,profile,email
+            redirect-uri: ${AUTH0_REDIRECT_URI}
+            authorization-grant-type: authorization_code
+        provider:
+          auth0:
+            issuer-uri: ${AUTH0_ISSUER_URI}/
+            authorization-uri: ${AUTH0_ISSUER_URI}/authorize
+            token-uri: ${AUTH0_ISSUER_URI}/oauth/token
+            user-info-uri: ${AUTH0_ISSUER_URI}/userinfo
+            user-name-attribute: email
+      resourceserver:
+        jwt:
+          audiences:
+            - ${AUTH0_ISSUER_URI}/api/v2
+
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
