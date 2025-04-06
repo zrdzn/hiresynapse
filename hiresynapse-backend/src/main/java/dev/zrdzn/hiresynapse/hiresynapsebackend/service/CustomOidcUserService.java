@@ -33,7 +33,8 @@ public class CustomOidcUserService extends OidcUserService {
                     null,
                     oidcUser.getPreferredUsername(),
                     oidcUser.getEmail(),
-                    "RECRUITER"
+                    "RECRUITER",
+                    oidcUser.getPicture()
                 ));
 
             Collection<GrantedAuthority> authorities = new ArrayList<>(oidcUser.getAuthorities());

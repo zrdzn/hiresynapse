@@ -1,13 +1,14 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskEntityType;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.JobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -48,6 +49,10 @@ public class JobService {
                 throw new RuntimeException("Error processing job", e);
             }
         });
+    }
+
+    public List<Job> getJobs(String requesterId, Pageable pageable) {
+        return jobRepository.findAll(pageable).getContent();
     }
 
 }

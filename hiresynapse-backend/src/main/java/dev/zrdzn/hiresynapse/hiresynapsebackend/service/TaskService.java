@@ -6,9 +6,9 @@ import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.TaskRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class TaskService {
@@ -47,10 +47,10 @@ public class TaskService {
         taskRepository.save(task);
     }
 
-    public List<Task> getTasks(TaskStatus status) {
-        logger.info("Fetching tasks with status: {}", status);
+    public Page<Task> getTasks(Pageable pageable) {
+        logger.info("Fetching {} tasks", pageable.getPageSize());
 
-        return taskRepository.findByStatus(status);
+        return taskRepository.findAll(pageable);
     }
 
 }

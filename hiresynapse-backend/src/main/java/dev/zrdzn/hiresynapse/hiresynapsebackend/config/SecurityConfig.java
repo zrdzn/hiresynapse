@@ -39,9 +39,9 @@ public class SecurityConfig {
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo.oidcUserService(new CustomOidcUserService(userService)))
                 .loginProcessingUrl("/v1/login/oauth2/code/*")
-                .defaultSuccessUrl("/v1", true)
+                .defaultSuccessUrl("http://localhost:3000", true)
                 .successHandler((request, response, authentication) -> {
-                    response.sendRedirect("/v1");
+                    response.sendRedirect("http://localhost:3000");
                 })
                 .failureUrl("/v1/login?error=true")
                 .failureHandler((request, response, exception) -> {

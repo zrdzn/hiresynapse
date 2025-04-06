@@ -14,7 +14,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> getMe(@AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(new UserDto(principal.getUser().id(), principal.getUser().username(), principal.getUser().email(), principal.getUser().role()));
+        return ResponseEntity.ok(new UserDto(principal.getUser().id(), principal.getUser().username(), principal.getUser().email(), principal.getUser().role(), principal.getUser().pictureUrl()));
     }
 
 }

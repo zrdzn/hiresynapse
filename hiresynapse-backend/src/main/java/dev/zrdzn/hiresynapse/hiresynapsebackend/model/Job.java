@@ -21,7 +21,7 @@ public class Job implements TaskEntity {
     @Nullable
     private String id;
 
-    private String jobTitle;
+    private String title;
     private String description;
     private String companyName;
     private String location;

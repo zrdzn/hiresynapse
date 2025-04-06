@@ -16,14 +16,14 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public UserDto createUser(String id, String username, String email, String role) {
-        User user = userRepository.save(new User(id, username, email, role));
-        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), user.getRole());
+    public UserDto createUser(String id, String username, String email, String role, String pictureUrl) {
+        User user = userRepository.save(new User(id, username, email, role, pictureUrl));
+        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getPictureUrl());
     }
 
     public Optional<UserDto> getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-            .map(user -> new UserDto(user.getId(), user.getUsername(), user.getEmail(), user.getRole()));
+            .map(user -> new UserDto(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getPictureUrl()));
     }
 
 }
