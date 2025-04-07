@@ -31,7 +31,16 @@ public class TaskListener {
 
     @KafkaListener(topics = CANDIDATE_TOPIC)
     public void consumeCandidateEvent(Candidate candidate) {
-        System.out.println("Consumed candidate event: " + candidate);
+        candidateService.processCandidate(candidate)
+            .thenAccept(result -> {
+                taskService.updateTaskStatus(candidate.getId(), TaskStatus.COMPLETED);
+                logger.info("Candidate processed: {}", result);
+            })
+            .exceptionally(e -> {
+                taskService.updateTaskStatus(candidate.getId(), TaskStatus.FAILED);
+                logger.error("Error processing candidate", e);
+                return null;
+            });
     }
 
     @KafkaListener(topics = JOB_TOPIC)
@@ -40,8 +49,12 @@ public class TaskListener {
             .thenAccept(result -> {
                 taskService.updateTaskStatus(job.getId(), TaskStatus.COMPLETED);
                 logger.info("Job processed: {}", result);
+            })
+            .exceptionally(e -> {
+                taskService.updateTaskStatus(job.getId(), TaskStatus.FAILED);
+                logger.error("Error processing job", e);
+                return null;
             });
     }
-
 
 }

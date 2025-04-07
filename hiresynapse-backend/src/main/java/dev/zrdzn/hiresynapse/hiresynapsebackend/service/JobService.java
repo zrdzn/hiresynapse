@@ -3,6 +3,7 @@ package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.JobRepository;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 @Service
 public class JobService {
@@ -24,7 +26,7 @@ public class JobService {
         this.taskService = taskService;
     }
 
-    public Job initiateJobCreation(String requesterId, Job job) {
+    public Job initiateJobCreation(String requesterId, @Valid Job job) {
         Job createdJob = jobRepository.save(job);
 
         taskService.createTaskAndDispatch(
@@ -41,13 +43,13 @@ public class JobService {
 
     public CompletableFuture<Job> processJob(Job job) {
         return CompletableFuture.supplyAsync(() -> {
-            try {
-                logger.info("Processing job: {}", job.getId());
+            logger.info("Processing job: {}", job.getId());
 
-                return jobRepository.save(job);
-            } catch (Exception e) {
-                throw new RuntimeException("Error processing job", e);
-            }
+            return job;
+        }).exceptionally(e -> {
+            logger.error("Error processing job", e);
+
+            throw new CompletionException(e);
         });
     }
 
