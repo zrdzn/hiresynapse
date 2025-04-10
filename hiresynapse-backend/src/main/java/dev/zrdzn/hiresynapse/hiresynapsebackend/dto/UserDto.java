@@ -1,10 +1,12 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.dto;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserRole;
+
 public record UserDto(
     String id,
     String username,
     String email,
-    String role,
+    UserRole role,
     String pictureUrl
 ) {
 }

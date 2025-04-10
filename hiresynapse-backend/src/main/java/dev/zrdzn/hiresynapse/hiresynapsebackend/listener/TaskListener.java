@@ -2,7 +2,6 @@ package dev.zrdzn.hiresynapse.hiresynapsebackend.listener;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.CandidateService;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.JobService;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.TaskService;
@@ -33,11 +32,9 @@ public class TaskListener {
     public void consumeCandidateEvent(Candidate candidate) {
         candidateService.processCandidate(candidate)
             .thenAccept(result -> {
-                taskService.updateTaskStatus(candidate.getId(), TaskStatus.COMPLETED);
                 logger.info("Candidate processed: {}", result);
             })
             .exceptionally(e -> {
-                taskService.updateTaskStatus(candidate.getId(), TaskStatus.FAILED);
                 logger.error("Error processing candidate", e);
                 return null;
             });
@@ -47,11 +44,9 @@ public class TaskListener {
     public void consumeJobEvent(Job job) {
         jobService.processJob(job)
             .thenAccept(result -> {
-                taskService.updateTaskStatus(job.getId(), TaskStatus.COMPLETED);
                 logger.info("Job processed: {}", result);
             })
             .exceptionally(e -> {
-                taskService.updateTaskStatus(job.getId(), TaskStatus.FAILED);
                 logger.error("Error processing job", e);
                 return null;
             });

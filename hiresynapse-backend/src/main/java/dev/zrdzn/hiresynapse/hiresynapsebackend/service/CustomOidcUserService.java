@@ -2,6 +2,7 @@ package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.UserDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserPrincipal;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -33,7 +34,7 @@ public class CustomOidcUserService extends OidcUserService {
                     null,
                     oidcUser.getPreferredUsername(),
                     oidcUser.getEmail(),
-                    "RECRUITER",
+                    UserRole.RECRUITER,
                     oidcUser.getPicture()
                 ));
 

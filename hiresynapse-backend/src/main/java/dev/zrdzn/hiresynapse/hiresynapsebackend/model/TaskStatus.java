@@ -1,4 +1,4 @@
-package dev.zrdzn.hiresynapse.hiresynapsebackend.model.task;
+package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
 
 public enum TaskStatus {
 

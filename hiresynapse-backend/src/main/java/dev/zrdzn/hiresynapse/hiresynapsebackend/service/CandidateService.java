@@ -1,7 +1,7 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.CandidateRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,13 +26,12 @@ public class CandidateService {
     }
 
     public Candidate initiateCandidateCreation(Candidate candidate) {
+        candidate.setTaskStatus(TaskStatus.PENDING);
         Candidate createdCandidate = candidateRepository.save(candidate);
 
-        taskService.createTaskAndDispatch(
-            TaskStatus.PENDING,
-            createdCandidate,
-            null,
-            createdCandidate.getEmail()
+        taskService.sendEvent(
+            createdCandidate.getId(),
+            candidate
         );
 
         logger.info("Started candidate creation task for candidate: {}", createdCandidate.getId());
@@ -44,12 +43,26 @@ public class CandidateService {
         return CompletableFuture.supplyAsync(() -> {
             logger.info("Processing candidate: {}", candidate.getId());
 
+            updateCandidateStatus(candidate.getId(), TaskStatus.COMPLETED);
+
             return candidate;
         }).exceptionally(e -> {
             logger.error("Error processing candidate", e);
 
+            updateCandidateStatus(candidate.getId(), TaskStatus.FAILED);
+
             throw new CompletionException(e);
         });
+    }
+
+    public void updateCandidateStatus(String candidateId, TaskStatus status) {
+        Candidate candidate = candidateRepository.findById(candidateId)
+            .orElseThrow(() -> new IllegalArgumentException("Candidate not found"));
+
+        candidate.setTaskStatus(status);
+        candidateRepository.save(candidate);
+
+        logger.info("Updated candidate status: {} to {}", candidateId, status);
     }
 
     public List<Candidate> getCandidates(String requesterId, Pageable pageable) {

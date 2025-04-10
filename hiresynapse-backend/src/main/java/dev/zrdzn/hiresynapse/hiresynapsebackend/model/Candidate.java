@@ -1,7 +1,6 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskEntity;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskEntityType;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,15 +17,21 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "candidates")
-public class Candidate implements TaskEntity, Serializable {
+public class Candidate implements Serializable {
 
     @Id
     @Nullable
     private String id;
 
+    @NotBlank(message = "First name is required")
     private String firstName;
+
+    @NotBlank(message = "Last name is required")
     private String lastName;
+
+    @NotBlank(message = "Email is required")
     private String email;
+
     private String phone;
 
     @DBRef
@@ -41,10 +46,6 @@ public class Candidate implements TaskEntity, Serializable {
     private List<String> certificates;
     private List<String> references;
     private double salaryExpectation;
-
-    @Override
-    public TaskEntityType getType() {
-        return TaskEntityType.CANDIDATE;
-    }
+    private TaskStatus taskStatus;
 
 }

@@ -1,7 +1,7 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskEntity;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.task.TaskEntityType;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,19 +14,19 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "users")
-public class User implements TaskEntity, Serializable {
+public class User implements Serializable {
 
     @Id
     private String id;
 
     private String username;
-    private String email;
-    private String role;
-    private String pictureUrl;
 
-    @Override
-    public TaskEntityType getType() {
-        return TaskEntityType.USER;
-    }
+    @Email(message = "Email should be valid")
+    private String email;
+
+    @NotBlank(message = "Role is required")
+    private UserRole role;
+
+    private String pictureUrl;
 
 }
