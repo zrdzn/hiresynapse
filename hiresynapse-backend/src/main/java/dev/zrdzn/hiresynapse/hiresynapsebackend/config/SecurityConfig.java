@@ -34,6 +34,8 @@ public class SecurityConfig {
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/login/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/v1/jobs/published").permitAll()
+                        .requestMatchers("/v1/candidates").permitAll()
                         .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2

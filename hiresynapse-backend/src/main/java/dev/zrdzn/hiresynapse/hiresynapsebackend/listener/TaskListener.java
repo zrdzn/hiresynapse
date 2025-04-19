@@ -1,10 +1,9 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.listener;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.event.CandidateCreateEvent;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.CandidateService;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.JobService;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.service.TaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,19 +17,17 @@ public class TaskListener {
 
     private final Logger logger = LoggerFactory.getLogger(TaskListener.class);
 
-    private final TaskService taskService;
     private final CandidateService candidateService;
     private final JobService jobService;
 
-    public TaskListener(TaskService taskService, CandidateService candidateService, JobService jobService) {
-        this.taskService = taskService;
+    public TaskListener(CandidateService candidateService, JobService jobService) {
         this.candidateService = candidateService;
         this.jobService = jobService;
     }
 
     @KafkaListener(topics = CANDIDATE_TOPIC)
-    public void consumeCandidateEvent(Candidate candidate) {
-        candidateService.processCandidate(candidate)
+    public void consumeCandidateEvent(CandidateCreateEvent candidateCreateEvent) {
+        candidateService.processCandidate(candidateCreateEvent)
             .thenAccept(result -> {
                 logger.info("Candidate processed: {}", result);
             })

@@ -1,22 +1,29 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.controller;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.CandidateCreateDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserPrincipal;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.CandidateService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/v1/candidates")
 public class CandidateController {
+
+    private final Logger logger = LoggerFactory.getLogger(CandidateController.class);
 
     private final CandidateService candidateService;
 
@@ -25,8 +32,11 @@ public class CandidateController {
     }
 
     @PostMapping
-    public Candidate createCandidate(@RequestBody Candidate candidate) {
-        return candidateService.initiateCandidateCreation(candidate);
+    public ResponseEntity<Candidate> createCandidate(
+        @RequestPart("dto") CandidateCreateDto candidateCreateDto,
+        @RequestPart("file") MultipartFile resumeFile
+        ) {
+        return ResponseEntity.ok(candidateService.initiateCandidateCreation(candidateCreateDto, resumeFile.getOriginalFilename(), resumeFile));
     }
 
     @GetMapping

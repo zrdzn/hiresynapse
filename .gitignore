@@ -159,6 +159,5 @@ gradle-app.setting
 
 # End of https://www.toptal.com/developers/gitignore/api/gradle,java,intellij+all,react
 
-hiresynapse-frontend
 *.iml
 .env

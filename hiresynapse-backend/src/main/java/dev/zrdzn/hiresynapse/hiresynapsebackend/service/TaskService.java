@@ -1,6 +1,6 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.event.CandidateCreateEvent;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import static dev.zrdzn.hiresynapse.hiresynapsebackend.config.KafkaConfig.JOB_TO
 public class TaskService {
 
     private final Map<Class<?>, String> topicMappings = Map.of(
-        Candidate.class, CANDIDATE_TOPIC,
+        CandidateCreateEvent.class, CANDIDATE_TOPIC,
         Job.class, JOB_TOPIC
     );
 

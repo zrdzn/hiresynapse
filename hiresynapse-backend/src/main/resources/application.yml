@@ -32,8 +32,11 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties.spring.json.trusted.packages: dev.zrdzn.hiresynapse.hiresynapsebackend.model
+      properties.spring.json.trusted.packages: dev.zrdzn.hiresynapse.hiresynapsebackend.model,dev.zrdzn.hiresynapse.hiresynapsebackend.event
     producer:
       acks: all
     listener:
       missing-topics-fatal: false
+
+ai:
+  api-key: ${OPENAI_API_KEY}

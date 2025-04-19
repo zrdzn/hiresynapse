@@ -23,10 +23,7 @@ public class Candidate implements Serializable {
     @Nullable
     private String id;
 
-    @NotBlank(message = "First name is required")
     private String firstName;
-
-    @NotBlank(message = "Last name is required")
     private String lastName;
 
     @NotBlank(message = "Email is required")
@@ -37,15 +34,14 @@ public class Candidate implements Serializable {
     @DBRef
     private Job job;
 
-    private int matchScore;
-    private String status;
+    private Integer matchScore;
+    private CandidateStatus status;
     private Map<String, Integer> experience;
     private Map<String, String> education;
     private Map<String, String> skills;
     private List<String> languages;
     private List<String> certificates;
     private List<String> references;
-    private double salaryExpectation;
     private TaskStatus taskStatus;
 
 }

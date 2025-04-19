@@ -5,10 +5,14 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
+import java.time.Instant;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -18,6 +22,12 @@ public class Job implements Serializable {
 
     @Id
     private String id;
+
+    @CreatedDate
+    private Instant createdAt;
+
+    @LastModifiedDate
+    private Instant updatedAt;
 
     @NotBlank(message = "Title is required")
     @Size(min = 3, max = 50, message = "Title must be between 3 and 50 characters")
@@ -36,7 +46,9 @@ public class Job implements Serializable {
 
     private JobStatus status;
 
-    private String requirements;
+    private List<String> requirements;
+
+    private List<String> benefits;
 
     private TaskStatus taskStatus;
 

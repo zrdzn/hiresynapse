@@ -27,6 +27,15 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.influxdb:influxdb-java:2.25")
     implementation("org.projectlombok:lombok:1.18.38")
+    implementation("io.github.sashirestela:simple-openai:3.19.4") {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+        exclude(group = "org.slf4j", module = "slf4j-api")
+        exclude(group = "org.slf4j", module = "slf4j-simple")
+    }
+    implementation("org.apache.pdfbox:pdfbox:3.0.4")
+    implementation("org.apache.poi:poi:5.4.1")
+    implementation("org.apache.poi:poi-ooxml:5.4.1")
+    implementation("org.apache.commons:commons-text:1.13.1")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")

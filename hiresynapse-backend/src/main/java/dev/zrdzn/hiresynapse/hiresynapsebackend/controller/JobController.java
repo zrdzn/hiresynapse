@@ -6,7 +6,9 @@ import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserPrincipal;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.JobService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/v1/jobs")
@@ -40,12 +43,36 @@ public class JobController {
         return jobService.getJobs(principal.getUser().id(), pageable);
     }
 
+    @GetMapping("/published")
+    public List<Job> getPublishedJobs(
+        @PageableDefault(size = 50) Pageable pageable
+    ) {
+        return jobService.getPublishedJobs(pageable);
+    }
+
+    @GetMapping("/{jobId}")
+    public ResponseEntity<Job> getJob(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable String jobId
+    ) {
+        Optional<Job> job = jobService.getJob(jobId);
+
+        return job.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @PatchMapping("/{jobId}/{status}")
     public void updateJobStatus(
         @AuthenticationPrincipal UserPrincipal principal,
         @PathVariable String jobId,
         @PathVariable JobStatus status) {
         jobService.updateJobStatus(jobId, status);
+    }
+
+    @DeleteMapping("/{jobId}")
+    public void deleteJob(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable String jobId) {
+        jobService.deleteJob(principal.getUser().id(), jobId);
     }
 
 }

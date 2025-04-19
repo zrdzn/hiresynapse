@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -36,7 +37,6 @@ public class JobService {
     }
 
     public Job initiateJobCreation(@Valid Job job) {
-
         job.setTaskStatus(TaskStatus.PENDING);
 
         Job createdJob = jobRepository.save(job);
@@ -84,7 +84,20 @@ public class JobService {
     }
 
     public List<Job> getJobs(String requesterId, Pageable pageable) {
-        return jobRepository.findAll(pageable).getContent();
+        return jobRepository.findAllByTaskStatus(TaskStatus.COMPLETED, pageable).getContent();
+    }
+
+    public List<Job> getPublishedJobs(Pageable pageable) {
+        return jobRepository.findByStatusAndTaskStatus(JobStatus.PUBLISHED, TaskStatus.COMPLETED, pageable).getContent();
+    }
+
+    public Optional<Job> getJob(String jobId) {
+        return jobRepository.findById(jobId);
+    }
+
+    public void deleteJob(String requesterId, String jobId) {
+        jobRepository.deleteById(jobId);
+        logger.info("Deleted job: {}", jobId);
     }
 
 }
