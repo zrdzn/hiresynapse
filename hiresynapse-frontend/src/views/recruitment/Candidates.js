@@ -15,10 +15,13 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CTooltip,
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
+import CIcon from '@coreui/icons-react';
+import * as icons from '@coreui/icons';
 
 import {candidateService} from "../../services/candidateService";
+import {capitalize} from "../../hooks/wordCapitalizeUtil";
 
 const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
@@ -89,14 +92,10 @@ const Candidates = () => {
                   <CTableRow>
                     <CTableHeaderCell className="bg-body-tertiary">Candidate</CTableHeaderCell>
                     <CTableHeaderCell className="bg-body-tertiary">Languages</CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary text-center">
-                      Job
-                    </CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary">Score</CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary text-center">
-                      Status
-                    </CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary">Actions</CTableHeaderCell>
+                    <CTableHeaderCell className="bg-body-tertiary">Job</CTableHeaderCell>
+                    <CTableHeaderCell className="bg-body-tertiary">Experience</CTableHeaderCell>
+                    <CTableHeaderCell className="bg-body-tertiary">Status</CTableHeaderCell>
+                    <CTableHeaderCell className="bg-body-tertiary text-end">Actions</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
                 <CTableBody>
@@ -105,31 +104,46 @@ const Candidates = () => {
                       <CTableDataCell>
                         <div>{item.firstName} {item.lastName}</div>
                         <div className="small text-body-secondary text-nowrap">
-                          <span>zrdzn9@gmail.com</span> | 123-312-412
+                          <span>{item.email}</span> | {item.phone}
                         </div>
                       </CTableDataCell>
-                      <CTableDataCell className="text-center">
+                      <CTableDataCell>
                         {item.languages.map((lang, index) => (
-                          <CIcon
-                            key={index}
-                            size="xl"
-                            icon={`cif${lang.icon}`}
-                            title={lang.name}
-                            className="me-1"
-                          />
-                        )).reduce((prev, curr) => [prev, ', ', curr])}
+                          <>
+                            <CIcon
+                              key={index}
+                              size="xl"
+                              icon={icons[`cif${capitalize(lang === 'en' ? 'GB' : lang)}`]}
+                              title={lang}
+                              className="me-1"
+                            />
+                          </>
+                        )).reduce((prev, curr) => [prev, ' ', curr])}
                       </CTableDataCell>
-                      <CTableDataCell className="text-center">Software Engineer</CTableDataCell>
+                      <CTableDataCell>Software Engineer</CTableDataCell>
                       <CTableDataCell>
-                        <div className="fw-semibold text-center mb-1">{item.matchScore}%</div>
-                        <CProgress thin color={"success"} value={item.matchScore} />
+                        <CTooltip
+                          style={{
+                            minWidth: '200px',
+                          }}
+                          content={Object.entries(item.relatedExperience).map(([key, value]) => (
+                            <div key={key}>{key}: {value}</div>
+                          ))}
+                        >
+                          <span>{item.yearsOfRelatedExperience} years</span>
+                        </CTooltip>
                       </CTableDataCell>
-                      <CTableDataCell className="text-center">Pending</CTableDataCell>
                       <CTableDataCell>
+                        <div className="fw-semibold text-center mb-1">{capitalize(item.status)}</div>
+                        <CProgress thin
+                                   color={item.status === 'REJECTED' ? 'danger' : item.status === 'PENDING' ? 'warning' : 'success'}
+                                   value="100" />
+                      </CTableDataCell>
+                      <CTableDataCell className="text-end">
                           <CButton className="text-white bg-success" size="sm">
                             Accept
                           </CButton>
-                          <CButton className="text-white bg-primary mx-1" size="sm">
+                          <CButton href={`/#/recruitment/candidates/${item.id}`} className="text-white bg-primary mx-1" size="sm">
                             Analysis
                           </CButton>
                           <CButton className="text-white bg-danger" size="sm">

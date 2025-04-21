@@ -25,4 +25,11 @@ export const candidateService = {
     })
   },
   getCandidates: () => api.get(CANDIDATES_URL),
+  getCandidate: (candidateId) => {
+    if (!candidateId) {
+      throw new Error('Candidate ID is required')
+    }
+
+    return api.get(`${CANDIDATES_URL}/${candidateId}`)
+  }
 }

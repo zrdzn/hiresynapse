@@ -23,25 +23,32 @@ public class Candidate implements Serializable {
     @Nullable
     private String id;
 
-    private String firstName;
-    private String lastName;
+    @DBRef
+    private Job job;
 
     @NotBlank(message = "Email is required")
     private String email;
 
-    private String phone;
-
-    @DBRef
-    private Job job;
-
-    private Integer matchScore;
     private CandidateStatus status;
-    private Map<String, Integer> experience;
+    private TaskStatus taskStatus;
+
+    private String firstName;
+    private String lastName;
+    private String phone;
+    private String executiveSummary;
+    private String analysedSummary;
+    private String careerTrajectory;
+    private Integer yearsOfRelatedExperience;
+    private Integer yearsOfExperience;
+    private Map<String, String> relatedExperience;
+    private Map<String, String> experience;
     private Map<String, String> education;
     private Map<String, String> skills;
+    private Map<String, String> projects;
     private List<String> languages;
     private List<String> certificates;
     private List<String> references;
-    private TaskStatus taskStatus;
+    private List<String> keyAchievements;
+    private List<String> keySoftSkills;
 
 }

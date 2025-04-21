@@ -1,10 +1,10 @@
 import React from 'react'
 
-const AiAnalysis = () => {
+const Criteria = () => {
   return (
     <>
     </>
   )
 }
 
-export default AiAnalysis
+export default Criteria

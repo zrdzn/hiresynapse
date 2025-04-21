@@ -14,7 +14,6 @@ const DefaultLayout = () => {
       .then((res) => {
         setAuthDetails(res.data);
         setLoading(false);
-        console.log(res.data);
       })
       .catch(err => {
         const path = location.pathname;

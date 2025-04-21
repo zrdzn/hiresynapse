@@ -7,6 +7,7 @@ import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.AnalysedResumeDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.CandidateCreateDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.event.CandidateCreateEvent;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.CandidateStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.CandidateRepository;
@@ -29,10 +30,13 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Year;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -79,20 +83,28 @@ public class CandidateService {
 
         Candidate candidate = new Candidate(
             null,
-            null,
-            null,
-            candidateCreateDto.email(),
-            null,
             job,
+            candidateCreateDto.email(),
+            CandidateStatus.PENDING,
+            TaskStatus.PENDING,
             null,
             null,
-            Collections.emptyMap(),
-            Collections.emptyMap(),
-            Collections.emptyMap(),
-            Collections.emptyList(),
-            Collections.emptyList(),
-            Collections.emptyList(),
-            TaskStatus.PENDING
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
         );
 
         Candidate createdCandidate = candidateRepository.save(candidate);
@@ -149,7 +161,8 @@ public class CandidateService {
 
                 Map<String, String> replacements = Map.of(
                     "TITLE", job.getTitle(),
-                    "CONTENT", resumeContent
+                    "CONTENT", resumeContent,
+                    "YEAR", String.valueOf(Year.now().getValue())
                 );
                 StringSubstitutor substitutor = new StringSubstitutor(replacements , "{", "}");
 
@@ -171,13 +184,21 @@ public class CandidateService {
                         analysedResume.firstName(),
                         analysedResume.lastName(),
                         analysedResume.phone(),
-                        analysedResume.matchScore(),
-                        analysedResume.experience() != null ? analysedResume.experience() : Collections.emptyMap(),
-                        analysedResume.education() != null ? analysedResume.education() : Collections.emptyMap(),
-                        analysedResume.skills() != null ? analysedResume.skills() : Collections.emptyMap(),
-                        analysedResume.languages() != null ? analysedResume.languages() : Collections.emptyList(),
-                        analysedResume.certificates() != null ? analysedResume.certificates() : Collections.emptyList(),
-                        analysedResume.references() != null ? analysedResume.references() : Collections.emptyList()
+                        analysedResume.executiveSummary(),
+                        analysedResume.analysedSummary(),
+                        analysedResume.careerTrajectory(),
+                        calculateYearsOfExperience(analysedResume.relatedExperience()),
+                        calculateYearsOfExperience(analysedResume.experience()),
+                        emptyMapIfNull(analysedResume.relatedExperience()),
+                        emptyMapIfNull(analysedResume.experience()),
+                        emptyMapIfNull(analysedResume.education()),
+                        emptyMapIfNull(analysedResume.skills()),
+                        emptyMapIfNull(analysedResume.projects()),
+                        emptyListIfNull(analysedResume.languages()),
+                        emptyListIfNull(analysedResume.certificates()),
+                        emptyListIfNull(analysedResume.references()),
+                        emptyListIfNull(analysedResume.keyAchievements()),
+                        emptyListIfNull(analysedResume.keySoftSkills())
                     );
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
@@ -199,26 +220,42 @@ public class CandidateService {
         String firstName,
         String lastName,
         String phone,
-        Integer matchScore,
-        Map<String, Integer> experience,
+        String executiveSummary,
+        String analysedSummary,
+        String careerTrajectory,
+        Integer yearsOfRelatedExperience,
+        Integer yearsOfExperience,
+        Map<String, String> relatedExperience,
+        Map<String, String> experience,
         Map<String, String> education,
         Map<String, String> skills,
+        Map<String, String> projects,
         List<String> languages,
         List<String> certificates,
-        List<String> references
+        List<String> references,
+        List<String> keyAchievements,
+        List<String> keySoftSkills
     ) {
         Query query = new Query(Criteria.where("_id").is(candidateId));
         Update update = new Update()
             .set("firstName", firstName)
             .set("lastName", lastName)
             .set("phone", phone)
-            .set("matchScore", matchScore)
+            .set("executiveSummary", executiveSummary)
+            .set("analysedSummary", analysedSummary)
+            .set("careerTrajectory", careerTrajectory)
+            .set("yearsOfRelatedExperience", yearsOfRelatedExperience)
+            .set("yearsOfExperience", yearsOfExperience)
+            .set("relatedExperience", relatedExperience)
             .set("experience", experience)
             .set("education", education)
             .set("skills", skills)
+            .set("projects", projects)
             .set("languages", languages)
             .set("certificates", certificates)
-            .set("references", references);
+            .set("references", references)
+            .set("keyAchievements", keyAchievements)
+            .set("keySoftSkills", keySoftSkills);
 
         mongoTemplate.updateFirst(query, update, Candidate.class);
 
@@ -233,12 +270,49 @@ public class CandidateService {
         logger.info("Updated candidate status: {} to {}", candidateId, status);
     }
 
-    public List<Candidate> getCandidates(String requesterId, Pageable pageable) {
-        return candidateRepository.findAll(pageable).getContent();
+    public List<Candidate> getCandidates(Pageable pageable) {
+        return candidateRepository.findAllByTaskStatus(TaskStatus.COMPLETED, pageable).getContent();
     }
 
     public Optional<Candidate> getCandidate(String candidateId) {
         return candidateRepository.findById(candidateId);
+    }
+
+    private <K, V> Map<K, V> emptyMapIfNull(Map<K, V> map) {
+        return map == null ? Collections.emptyMap() : map;
+    }
+
+    private <T> List<T> emptyListIfNull(List<T> list) {
+        return list == null ? Collections.emptyList() : list;
+    }
+
+    private int calculateYearsOfExperience(Map<String, String> experience) {
+        if (experience == null) {
+            return 0;
+        }
+
+        if (experience.isEmpty()) {
+            return 0;
+        }
+
+        Set<Integer> yearsWorked = new HashSet<>();
+
+        experience.values()
+            .forEach(period -> {
+                String[] periodRange = period.split("-");
+                if (periodRange.length == 2) {
+                    int startYear = Integer.parseInt(periodRange[0]);
+                    int endYear = Integer.parseInt(periodRange[1]);
+
+                    for (int year = startYear; year <= endYear; year++) {
+                        yearsWorked.add(year);
+                    }
+                } else {
+                    logger.warn("Invalid period format: {}", period);
+                }
+            });
+
+        return yearsWorked.size();
     }
 
 }

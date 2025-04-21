@@ -8,12 +8,18 @@ public record AnalysedResumeDto(
     String firstName,
     String lastName,
     String phone,
-    Integer matchScore,
-    Map<String, Integer> experience,
+    String executiveSummary,
+    String careerTrajectory,
+    String analysedSummary,
+    Map<String, String> relatedExperience,
+    Map<String, String> experience,
     Map<String, String> education,
     Map<String, String> skills,
+    Map<String, String> projects,
     List<String> languages,
     List<String> certificates,
-    List<String> references
+    List<String> references,
+    List<String> keyAchievements,
+    List<String> keySoftSkills
 ) implements Serializable {
 }

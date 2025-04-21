@@ -7,19 +7,29 @@ public class AiPrompts {
     At the end of this prompt I will provide you a full content of resume.
     Your task is to analyze resume and extract all information as much as possible according to scheme I will provide you.
     After your analysis, you need to output me ONLY data in json that can be parsed to java pojo.
-    Candidate is applying for job title: "{TITLE}"
+    Candidate is applying for job title: "{TITLE}".
+    Make sure you calculate everything according to the current year which is "{YEAR}".
+    If something is in other than English language, please translate it to English.
+    In case of related experience, please don't be very strict about it - if job title is e.g. "PHP Developer"
+    and candidate is applying for "Java Developer", then include it. It must be similar in field, but not exactly the same.
     That is the scheme you need to fulfill, if no data is provided just simply put null in that place:
     {
         String firstName;
         String lastName;
-        String phone;
-        Integer matchScore; // calculate in estimated 1-100% how candidate matches the given job title based off on other data in this resume
-        Map<String, Integer> experience; // company with job title: years (if lower than year, put 1)
-        Map<String, String> education;
+        String phone; // XXX XXX XXX
+        String executiveSummary; // short summary of the candidate
+        String analysedSummary; // short summary of the candidate analysed by you, include everything possible
+        String careerTrajectory; // career trajectory of the candidate calculated from the experience
+        Map<String, String> relatedExperience; // <job title> at <company>: startYear-endYear NOTE: here are only related job titles to the job title candidate is applying for
+        Map<String, String> experience; // <job title> at <company>: startYear-endYear
+        Map<String, String> education; // education: school name, degree, year of graduation
         Map<String, String> skills; // skill: good/basic/bad etc
+        Map<String, String> projects; // project name: description (related technologies to the job title candidate is applying for)
         List<String> languages; // convert to ISO 639-1
         List<String> certificates;
         List<String> references;
+        List<String> keyAchievements; // key achievements in the candidate's career
+        List<String> keySoftSkills; // key soft skills in the candidate's career
     }
     Resume content: {CONTENT}
    \s""";
