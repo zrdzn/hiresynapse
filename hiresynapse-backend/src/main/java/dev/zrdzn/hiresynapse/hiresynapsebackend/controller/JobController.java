@@ -40,7 +40,7 @@ public class JobController {
         @AuthenticationPrincipal UserPrincipal principal,
         @PageableDefault(size = 50) Pageable pageable
     ) {
-        return jobService.getJobs(principal.getUser().id(), pageable);
+        return jobService.getJobs(principal.getUser().getId(), pageable);
     }
 
     @GetMapping("/published")
@@ -72,7 +72,7 @@ public class JobController {
     public void deleteJob(
         @AuthenticationPrincipal UserPrincipal principal,
         @PathVariable String jobId) {
-        jobService.deleteJob(principal.getUser().id(), jobId);
+        jobService.deleteJob(principal.getUser().getId(), jobId);
     }
 
 }

@@ -241,10 +241,9 @@ const Jobs = () => {
                     <br/>
                     <CFormSelect name="status"
                                  label="Status on create">
-                      <option disabled>Choose...</option>
-                      <option>PUBLISHED</option>
-                      <option>SCHEDULED</option>
-                      <option>UNPUBLISHED</option>
+                      <option value="PUBLISHED">Published</option>
+                      <option value="SCHEDULED">Scheduled</option>
+                      <option value="UNPUBLISHED">Unpublished</option>
                     </CFormSelect>
                     <br/>
                     <CFormInput

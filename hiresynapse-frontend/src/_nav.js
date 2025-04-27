@@ -1,6 +1,6 @@
 import React from 'react'
 import CIcon from '@coreui/icons-react'
-import {cilBell, cilChartLine, cilFactory, cilSettings, cilSpeedometer, cilUser,} from '@coreui/icons'
+import {cilBell, cilCalendar, cilChartLine, cilFactory, cilSpeedometer, cilUser,} from '@coreui/icons'
 import {CNavItem, CNavTitle} from '@coreui/react'
 
 const _nav = [
@@ -22,9 +22,9 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Criteria',
-    to: '/recruitment/criteria',
-    icon: <CIcon icon={cilSettings} customClassName="nav-icon" />,
+    name: 'Interviews',
+    to: '/recruitment/interviews',
+    icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
   },
   {
     component: CNavTitle,

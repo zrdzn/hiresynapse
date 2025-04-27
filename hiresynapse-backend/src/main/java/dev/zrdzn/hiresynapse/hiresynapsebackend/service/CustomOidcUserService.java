@@ -1,6 +1,6 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.UserDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.User;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserPrincipal;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserRole;
 import org.springframework.security.core.GrantedAuthority;
@@ -29,7 +29,7 @@ public class CustomOidcUserService extends OidcUserService {
         OidcUser oidcUser = super.loadUser(userRequest);
 
         try {
-            UserDto user = userService.getUserByEmail(oidcUser.getEmail())
+            User user = userService.getUserByEmail(oidcUser.getEmail())
                 .orElseGet(() -> userService.createUser(
                     null,
                     oidcUser.getPreferredUsername(),

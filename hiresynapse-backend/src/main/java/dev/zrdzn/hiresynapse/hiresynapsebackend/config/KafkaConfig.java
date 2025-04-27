@@ -20,6 +20,7 @@ public class KafkaConfig {
 
     public static final String CANDIDATE_TOPIC = "candidates";
     public static final String JOB_TOPIC = "jobs";
+    public static final String INTERVIEW_TOPIC = "interviews";
 
     private final String bootstrapServers;
 

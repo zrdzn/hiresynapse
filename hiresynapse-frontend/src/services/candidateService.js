@@ -25,6 +25,7 @@ export const candidateService = {
     })
   },
   getCandidates: () => api.get(CANDIDATES_URL),
+  getPendingCandidates: () => api.get(`${CANDIDATES_URL}/pending`),
   getCandidate: (candidateId) => {
     if (!candidateId) {
       throw new Error('Candidate ID is required')

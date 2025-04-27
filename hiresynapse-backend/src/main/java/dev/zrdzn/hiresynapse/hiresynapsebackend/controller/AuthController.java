@@ -1,6 +1,6 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.controller;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.UserDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.User;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,8 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     @GetMapping("/me")
-    public ResponseEntity<UserDto> getMe(@AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(new UserDto(principal.getUser().id(), principal.getUser().username(), principal.getUser().email(), principal.getUser().role(), principal.getUser().pictureUrl()));
+    public ResponseEntity<User> getMe(@AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(new User(
+            principal.getUser().getId(),
+            principal.getUser().getUsername(),
+            principal.getUser().getEmail(),
+            principal.getUser().getRole(),
+            principal.getUser().getPictureUrl()
+        ));
     }
 
 }

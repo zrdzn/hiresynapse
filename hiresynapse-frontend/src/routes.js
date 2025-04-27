@@ -4,7 +4,7 @@ import CandidateAnalysis from "./views/recruitment/CandidateAnalysis";
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 
 const Candidates = React.lazy(() => import('./views/recruitment/Candidates'))
-const Criteria = React.lazy(() => import('./views/recruitment/Criteria'))
+const Interviews = React.lazy(() => import('./views/recruitment/Interviews'))
 
 const Jobs = React.lazy(() => import('./views/management/Jobs'))
 const UsersAndRoles = React.lazy(() => import('./views/management/UsersAndRoles'))
@@ -17,7 +17,7 @@ const routes = [
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/recruitment/candidates', name: 'Candidates', element: Candidates },
   { path: '/recruitment/candidates/:candidateId', name: 'Candidate Analysis', element: CandidateAnalysis },
-  { path: '/recruitment/criteria', name: 'Criteria', element: Criteria },
+  { path: '/recruitment/interviews', name: 'Interviews', element: Interviews },
   { path: '/management/jobs', name: 'Jobs', element: Jobs },
   { path: '/management/users-roles', name: 'Users & Roles', element: UsersAndRoles },
   { path: '/logs-reports/activity-logs', name: 'Activity Logs', element: ActivityLogs },

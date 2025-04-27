@@ -13,7 +13,7 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {cilAt, cilFile} from '@coreui/icons'
-import {useNavigate, useParams} from "react-router-dom";
+import {useParams} from "react-router-dom";
 import {candidateService} from "../../../services/candidateService";
 import {toast} from "react-toastify";
 
@@ -24,7 +24,6 @@ const Apply = () => {
     jobId: jobId
   });
   const [resumeFile, setResumeFile] = useState(null)
-  const navigate = useNavigate()
 
   const handleFileInputChange = (event) => {
     const file = event.target.files?.item(0) ?? null

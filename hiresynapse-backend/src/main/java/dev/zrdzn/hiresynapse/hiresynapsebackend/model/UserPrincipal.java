@@ -1,6 +1,5 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.UserDto;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -13,12 +12,12 @@ import java.util.Map;
 public class UserPrincipal implements OidcUser {
 
     @Getter
-    private final UserDto user;
+    private final User user;
     private final OidcUser oidcUser;
 
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public UserPrincipal(UserDto user, OidcUser oidcUser, Collection<? extends GrantedAuthority> authorities) {
+    public UserPrincipal(User user, OidcUser oidcUser, Collection<? extends GrantedAuthority> authorities) {
         this.user = user;
         this.oidcUser = oidcUser;
         this.authorities = authorities;
@@ -51,7 +50,7 @@ public class UserPrincipal implements OidcUser {
 
     @Override
     public String getName() {
-        return user.email();
+        return user.getEmail();
     }
 
 }

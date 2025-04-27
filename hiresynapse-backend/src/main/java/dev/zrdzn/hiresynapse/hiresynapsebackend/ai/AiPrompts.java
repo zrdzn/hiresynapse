@@ -34,4 +34,21 @@ public class AiPrompts {
     Resume content: {CONTENT}
    \s""";
 
+    public static final String INTERVIEW_QUESTIONS_PROMPT =
+    """
+    You are an AI assistant helping a recruiter to prepare questions for an interview.
+    Make sure you are asking questions that are related to the job title candidate is applying for.
+    Take into account the candidate's experience, skills and projects and mostly important type of an interview.
+    Ask questions in a quite simple but professional way so the candidate can understand them.
+    After your preparation, you need to output me ONLY data in specified format without any additional comments:
+    ["question1", "question2", "question3", ...]
+    Generate EXACT {AMOUNT} questions (maximum 10 questions).
+    The type of the interview is: "{INTERVIEW_TYPE}".
+    The candidate is applying for a job title: "{TITLE}".
+    The candidate has the following experience: "{EXPERIENCE}".
+    The candidate has the following skills: "{SKILLS}".
+    The candidate has the following projects: "{PROJECTS}".
+    Short summary of the candidate: "{SUMMARY}".
+   \s""";
+
 }

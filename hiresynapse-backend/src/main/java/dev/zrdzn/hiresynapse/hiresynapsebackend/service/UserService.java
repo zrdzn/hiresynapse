@@ -1,6 +1,5 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.UserDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.User;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserRole;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.UserRepository;
@@ -17,14 +16,19 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public UserDto createUser(String id, String username, String email, UserRole role, String pictureUrl) {
+    public User createUser(String id, String username, String email, UserRole role, String pictureUrl) {
         User user = userRepository.save(new User(id, username, email, role, pictureUrl));
-        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getPictureUrl());
+        return new User(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getPictureUrl());
     }
 
-    public Optional<UserDto> getUserByEmail(String email) {
+    public Optional<User> getUser(String id) {
+        return userRepository.findById(id)
+            .map(user -> new User(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getPictureUrl()));
+    }
+
+    public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-            .map(user -> new UserDto(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getPictureUrl()));
+            .map(user -> new User(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getPictureUrl()));
     }
 
 }

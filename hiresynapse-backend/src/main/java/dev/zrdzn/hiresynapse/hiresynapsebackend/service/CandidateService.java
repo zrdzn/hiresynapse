@@ -274,6 +274,10 @@ public class CandidateService {
         return candidateRepository.findAllByTaskStatus(TaskStatus.COMPLETED, pageable).getContent();
     }
 
+    public List<Candidate> getPendingCandidates(Pageable pageable) {
+        return candidateRepository.findAllByTaskStatusAndStatus(TaskStatus.COMPLETED, CandidateStatus.PENDING, pageable).getContent();
+    }
+
     public Optional<Candidate> getCandidate(String candidateId) {
         return candidateRepository.findById(candidateId);
     }

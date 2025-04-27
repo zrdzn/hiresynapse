@@ -6,6 +6,8 @@ import {
   CCardBody,
   CCardHeader,
   CCol,
+  CListGroup,
+  CListGroupItem,
   CProgress,
   CRow,
   CSpinner,
@@ -15,17 +17,18 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
-  CTooltip,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react';
 import * as icons from '@coreui/icons';
 
 import {candidateService} from "../../services/candidateService";
 import {capitalize} from "../../hooks/wordCapitalizeUtil";
+import {FiChevronDown, FiChevronUp} from "react-icons/fi";
 
 const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showExperience, setShowExperience] = useState(false);
 
   useEffect(() => {
     candidateService.getCandidates()
@@ -122,16 +125,37 @@ const Candidates = () => {
                       </CTableDataCell>
                       <CTableDataCell>Software Engineer</CTableDataCell>
                       <CTableDataCell>
-                        <CTooltip
-                          style={{
-                            minWidth: '200px',
-                          }}
-                          content={Object.entries(item.relatedExperience).map(([key, value]) => (
-                            <div key={key}>{key}: {value}</div>
-                          ))}
-                        >
+                        <div>
                           <span>{item.yearsOfRelatedExperience} years</span>
-                        </CTooltip>
+                          <CButton
+                            color="link"
+                            size="sm"
+                            className="ms-2 p-0"
+                            onClick={() => setShowExperience(!showExperience)}
+                          >
+                            {
+                              showExperience ? <FiChevronUp size={16} /> : <FiChevronDown size={16} />
+                            }
+                          </CButton>
+                        </div>
+                        {showExperience && (
+                          <CListGroup className="position-absolute shadow-sm" style={{zIndex: 1000}}>
+                            {Object.keys(item.relatedExperience).length > 0 ? (
+                              Object.entries(item.relatedExperience).map(([title, years]) => (
+                                <CListGroupItem className="cursor-pointer">
+                                  <div className="d-flex justify-content-between align-items-center">
+                                    <div>
+                                      <div className="fw-bold">{title}</div>
+                                      <div className="small text-muted">{years}</div>
+                                    </div>
+                                  </div>
+                                </CListGroupItem>
+                              ))
+                            ) : (
+                              <CListGroupItem>No experience</CListGroupItem>
+                            )}
+                          </CListGroup>
+                        )}
                       </CTableDataCell>
                       <CTableDataCell>
                         <div className="fw-semibold text-center mb-1">{capitalize(item.status)}</div>
