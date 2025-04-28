@@ -12,7 +12,10 @@ export const interviewService = {
   getInterviews: () => {
     return api.get(`${INTERVIEWS_URL}`)
   },
-  getUpcomingInterviews: () => {
-    return api.get(`${INTERVIEWS_URL}/upcoming`)
-  }
+  getConfirmedInterviews: () => {
+    return api.get(`${INTERVIEWS_URL}/confirmed?size=3`)
+  },
+  getUnconfirmedInterviews: () => {
+    return api.get(`${INTERVIEWS_URL}/unconfirmed?size=3`)
+  },
 }

@@ -71,7 +71,8 @@ export const CandidateSearch = (props) => {
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
                     <div className="fw-bold">{candidate.firstName} {candidate.lastName}</div>
-                    <div className="small text-muted">{candidate.email} | {candidate.phone}</div>
+                    <div className="small text-muted">{candidate.email}</div>
+                    <div className="small text-muted">{candidate.phone}</div>
                     <div className="small text-muted">{candidate.job.title}</div>
                   </div>
                 </div>

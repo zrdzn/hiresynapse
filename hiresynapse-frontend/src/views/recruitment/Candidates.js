@@ -28,7 +28,7 @@ import {FiChevronDown, FiChevronUp} from "react-icons/fi";
 const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showExperience, setShowExperience] = useState(false);
+  const [showExperienceId, setShowExperienceId] = useState(null);
 
   useEffect(() => {
     candidateService.getCandidates()
@@ -123,7 +123,7 @@ const Candidates = () => {
                           </>
                         )).reduce((prev, curr) => [prev, ' ', curr])}
                       </CTableDataCell>
-                      <CTableDataCell>Software Engineer</CTableDataCell>
+                      <CTableDataCell>{item.job.title}</CTableDataCell>
                       <CTableDataCell>
                         <div>
                           <span>{item.yearsOfRelatedExperience} years</span>
@@ -131,14 +131,14 @@ const Candidates = () => {
                             color="link"
                             size="sm"
                             className="ms-2 p-0"
-                            onClick={() => setShowExperience(!showExperience)}
+                            onClick={() => setShowExperienceId(showExperienceId === item.id ? null : item.id)}
                           >
                             {
-                              showExperience ? <FiChevronUp size={16} /> : <FiChevronDown size={16} />
+                              showExperienceId === item.id ? <FiChevronUp size={16} /> : <FiChevronDown size={16} />
                             }
                           </CButton>
                         </div>
-                        {showExperience && (
+                        {showExperienceId === item.id && (
                           <CListGroup className="position-absolute shadow-sm" style={{zIndex: 1000}}>
                             {Object.keys(item.relatedExperience).length > 0 ? (
                               Object.entries(item.relatedExperience).map(([title, years]) => (

@@ -43,9 +43,18 @@ public class InterviewController {
         return interviewService.getInterviews(pageable);
     }
 
-    @GetMapping("/upcoming")
-    public List<Interview> getUpcomingInterviews() {
-        return interviewService.getUpcomingInterviews();
+    @GetMapping("/confirmed")
+    public List<Interview> getConfirmedInterviews(
+        @PageableDefault(size = 50) Pageable pageable
+    ) {
+        return interviewService.getConfirmedInterviews(pageable);
+    }
+
+    @GetMapping("/unconfirmed")
+    public List<Interview> getUnconfirmedInterviews(
+        @PageableDefault(size = 50) Pageable pageable
+    ) {
+        return interviewService.getUnconfirmedInterviews(pageable);
     }
 
     @GetMapping("/{interviewId}")

@@ -29,7 +29,8 @@ export const InterviewList = (props) => {
             <div className="d-flex justify-content-between align-items-start">
               <div>
                 <div className="fw-bold">{interview.candidate.firstName} {interview.candidate.lastName}</div>
-                <div className="small text-muted">{interview.candidate.email} | {interview.candidate.phone}</div>
+                <div className="small text-muted">{interview.candidate.email}</div>
+                <div className="small text-muted">{interview.candidate.phone}</div>
                 <div className="small text-muted">{interview.candidate.job.title}</div>
                 <div className="mt-1">
                   <CBadge color="primary" className="me-1">
@@ -39,8 +40,7 @@ export const InterviewList = (props) => {
                 </div>
               </div>
               <div className="text-end">
-                <div>{new Date(interview.interviewAt).toLocaleDateString()}</div>
-                <div className="small text-muted">{interview.time}</div>
+                <div>{new Date(interview.interviewAt).toLocaleString("en-US")}</div>
               </div>
             </div>
           </CListGroupItem>

@@ -31,7 +31,7 @@ public class JobController {
     }
 
     @PostMapping
-    public Job createJob(@AuthenticationPrincipal UserPrincipal principal, @RequestBody Job job) {
+    public Job createJob(@RequestBody Job job) {
         return jobService.initiateJobCreation(job);
     }
 
@@ -52,7 +52,6 @@ public class JobController {
 
     @GetMapping("/{jobId}")
     public ResponseEntity<Job> getJob(
-        @AuthenticationPrincipal UserPrincipal principal,
         @PathVariable String jobId
     ) {
         Optional<Job> job = jobService.getJob(jobId);
@@ -60,12 +59,15 @@ public class JobController {
         return job.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("/{jobId}/{status}")
-    public void updateJobStatus(
-        @AuthenticationPrincipal UserPrincipal principal,
-        @PathVariable String jobId,
-        @PathVariable JobStatus status) {
-        jobService.updateJobStatus(jobId, status);
+    @PatchMapping("/{jobId}/publish")
+    public void updateJobStatus(@PathVariable String jobId) {
+        jobService.updateJobStatus(jobId, JobStatus.PUBLISHED);
+    }
+
+    @PatchMapping("/{jobId}/unpublish")
+    public void unpublishJob(
+        @PathVariable String jobId) {
+        jobService.updateJobStatus(jobId, JobStatus.UNPUBLISHED);
     }
 
     @DeleteMapping("/{jobId}")

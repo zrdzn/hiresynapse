@@ -34,6 +34,8 @@ public class CustomOidcUserService extends OidcUserService {
                     null,
                     oidcUser.getPreferredUsername(),
                     oidcUser.getEmail(),
+                    oidcUser.getGivenName(),
+                    oidcUser.getFamilyName(),
                     UserRole.RECRUITER,
                     oidcUser.getPicture()
                 ));

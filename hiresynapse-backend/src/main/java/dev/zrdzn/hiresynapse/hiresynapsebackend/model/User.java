@@ -19,10 +19,17 @@ public class User implements Serializable {
     @Id
     private String id;
 
+    @NotBlank(message = "Username is required")
     private String username;
 
     @Email(message = "Email should be valid")
     private String email;
+
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    @NotBlank(message = "Last name is required")
+    private String lastName;
 
     @NotBlank(message = "Role is required")
     private UserRole role;

@@ -1,17 +1,24 @@
 import {CBadge, CButton, CCard, CCardBody, CListGroup, CListGroupItem} from "@coreui/react";
 import {useEffect, useState} from "react";
+import {capitalize} from "../../hooks/wordCapitalizeUtil";
 
 export const FullCalendar = (props) => {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(null)
   const [dayInterviews, setDayInterviews] = useState([])
 
+  const formatDate = (rawDate) => {
+    return new Date(rawDate).toLocaleDateString("en-US")
+  }
+
   const interviewsByDate = {}
-  props.interviews.forEach((interview) => {
-    if (!interviewsByDate[interview.date]) {
-      interviewsByDate[interview.date] = []
+  props.interviews.forEach(interview => {
+    const formattedDate = formatDate(interview.interviewAt)
+
+    if (!interviewsByDate[formattedDate]) {
+      interviewsByDate[formattedDate] = []
     }
-    interviewsByDate[interview.date].push(interview)
+    interviewsByDate[formattedDate].push(interview)
   })
 
   useEffect(() => {
@@ -22,10 +29,6 @@ export const FullCalendar = (props) => {
       setDayInterviews([])
     }
   }, [selectedDay, props.interviews])
-
-  const formatDate = (date) => {
-    return date.toISOString().split("T")[0]
-  }
 
   const getDaysInMonth = (year, month) => {
     return new Date(year, month + 1, 0).getDate()
@@ -125,47 +128,16 @@ export const FullCalendar = (props) => {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "scheduled":
-        return <CBadge color="info">Scheduled</CBadge>
-      case "confirmed":
+      case "SCHEDULED":
+        return <CBadge color="warning">Scheduled</CBadge>
+      case "CONFIRMED":
         return <CBadge color="success">Confirmed</CBadge>
-      case "completed":
+      case "COMPLETED":
         return <CBadge color="secondary">Completed</CBadge>
-      case "cancelled":
-        return <CBadge color="danger">Cancelled</CBadge>
+      case "CANCELLED":
+        return <CBadge color="secondary">Cancelled</CBadge>
       default:
-        return <CBadge color="light">Unknown</CBadge>
-    }
-  }
-
-  const getInterviewTypeBadge = (type) => {
-    switch (type) {
-      case "technical":
-        return (
-          <CBadge color="primary" className="me-1">
-            Technical
-          </CBadge>
-        )
-      case "cultural":
-        return (
-          <CBadge color="warning" className="me-1">
-            Cultural
-          </CBadge>
-        )
-      case "initial":
-        return (
-          <CBadge color="info" className="me-1">
-            Initial
-          </CBadge>
-        )
-      case "final":
-        return (
-          <CBadge color="danger" className="me-1">
-            Final
-          </CBadge>
-        )
-      default:
-        return null
+        return <CBadge color="danger">Unknown</CBadge>
     }
   }
 
@@ -222,15 +194,19 @@ export const FullCalendar = (props) => {
                   <CListGroupItem key={interview.id} className="border-start-0 border-end-0">
                     <div className="d-flex justify-content-between align-items-start">
                       <div>
-                        <div className="fw-bold">{interview.candidate}</div>
-                        <div className="small text-muted">{interview.position}</div>
+                        <div className="fw-bold">{interview.candidate.firstName} {interview.candidate.lastName}</div>
+                        <div className="small text-muted">{interview.candidate.email}</div>
+                        <div className="small text-muted">{interview.candidate.phone}</div>
+                        <div className="small text-muted">{interview.candidate.job.title}</div>
                         <div className="mt-1">
-                          {getInterviewTypeBadge(interview.type)}
+                          <CBadge color="primary" className="me-1">
+                            {capitalize(interview.interviewType)}
+                          </CBadge>
                           {getStatusBadge(interview.status)}
                         </div>
                       </div>
                       <div className="text-end">
-                        <div className="fw-bold">{interview.time}</div>
+                        <div>{new Date(interview.interviewAt).toLocaleString("en-US")}</div>
                       </div>
                     </div>
                   </CListGroupItem>

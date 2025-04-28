@@ -189,11 +189,20 @@ public class InterviewService {
         return interviewRepository.findAllByTaskStatus(TaskStatus.COMPLETED, pageable).getContent();
     }
 
-    public List<Interview> getUpcomingInterviews() {
-        return interviewRepository.findTop3ByStatusAndTaskStatusOrderByInterviewAtAsc(
+    public List<Interview> getConfirmedInterviews(Pageable pageable) {
+        return interviewRepository.findByStatusAndTaskStatusOrderByInterviewAtAsc(
             InterviewStatus.CONFIRMED,
-            TaskStatus.COMPLETED
-        );
+            TaskStatus.COMPLETED,
+            pageable
+        ).getContent();
+    }
+
+    public List<Interview> getUnconfirmedInterviews(Pageable pageable) {
+        return interviewRepository.findByStatusAndTaskStatusOrderByInterviewAtAsc(
+            InterviewStatus.SCHEDULED,
+            TaskStatus.COMPLETED,
+            pageable
+        ).getContent();
     }
 
     public Optional<Interview> getInterview(String interviewId) {

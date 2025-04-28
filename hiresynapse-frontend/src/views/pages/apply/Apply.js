@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {
   CButton,
   CCard,
@@ -10,20 +10,42 @@ import {
   CInputGroup,
   CInputGroupText,
   CRow,
+  CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {cilAt, cilFile} from '@coreui/icons'
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {candidateService} from "../../../services/candidateService";
 import {toast} from "react-toastify";
+import {jobService} from "../../../services/jobService";
 
 const Apply = () => {
   const { jobId } = useParams()
+  const [job, setJob] = useState(null)
+  const [loading, setLoading] = useState(false)
   const [candidateCreateRequest, setCandidateCreateRequest] = useState({
     email: '',
     jobId: jobId
   });
+  const navigate = useNavigate()
   const [resumeFile, setResumeFile] = useState(null)
+
+  useEffect(() => {
+    jobService.getJob(jobId)
+      .then(response => {
+        setJob(response.data);
+        setLoading(false);
+      })
+      .catch(err => console.error(err))
+  }, [jobId]);
+
+  if (loading) {
+    return (
+      <div className="pt-3 text-center">
+        <CSpinner />
+      </div>
+    );
+  }
 
   const handleFileInputChange = (event) => {
     const file = event.target.files?.item(0) ?? null
@@ -54,6 +76,10 @@ const Apply = () => {
     }
 
     candidateService.createCandidate(candidateCreateRequest, resumeFile)
+      .then(() => {
+        toast.success("Your application has been submitted successfully")
+        navigate('/#/apply')
+      })
       .catch(err => {
         console.error(err)
         if (Array.isArray(err.response.data)) {
@@ -71,13 +97,13 @@ const Apply = () => {
               <CCardBody className="p-4">
                 <CForm>
                   <div className="text-center mb-4">
-                    <h1 className="mb-2 fw-bold">Apply for Software Engineer</h1>
+                    <h1 className="mb-2 fw-bold">Apply for {job?.title ?? "Unknown" }</h1>
                     <p className="text-body-secondary">Complete your application below</p>
                   </div>
 
                   <div className="mb-1">
                     <label className="form-label fw-semibold">
-                      Contact Email <span className="text-danger">*</span>
+                      Email <span className="text-danger">*</span>
                     </label>
                   </div>
                   <CInputGroup className="mb-4">
@@ -96,7 +122,7 @@ const Apply = () => {
 
                   <div className="mb-1">
                     <label className="form-label fw-semibold">
-                      Resume (PDF or DOC) <span className="text-danger">*</span>
+                      Resume <span className="text-danger">*</span>
                     </label>
                   </div>
                   <CInputGroup className="mb-4">
@@ -114,7 +140,7 @@ const Apply = () => {
                     />
                   </CInputGroup>
                   <div id="fileHelp" className="form-text mb-4">
-                    Supported formats: PDF, DOC, DOCX
+                    Supported formats: .pdf, .doc, .docx
                   </div>
 
                   <div className="d-grid gap-2">
@@ -125,7 +151,7 @@ const Apply = () => {
                       type="submit"
                       onClick={handleCandidateCreate}
                     >
-                      Submit Application
+                      Submit application
                     </CButton>
                   </div>
 

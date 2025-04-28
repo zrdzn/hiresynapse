@@ -11,14 +11,9 @@ import {
   CDropdownMenu,
   CDropdownToggle,
   CForm,
+  CFormCheck,
   CFormInput,
-  CFormSelect,
   CFormTextarea,
-  CModal,
-  CModalBody,
-  CModalFooter,
-  CModalHeader,
-  CModalTitle,
   CProgress,
   CRow,
   CSpinner,
@@ -33,7 +28,6 @@ import {
 import {jobService} from "../../services/jobService";
 import {
   FiArchive,
-  FiBriefcase,
   FiCalendar,
   FiClock,
   FiEdit,
@@ -49,13 +43,14 @@ import {capitalize} from "../../hooks/wordCapitalizeUtil";
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
+  const [jobStatus, setJobStatus] = useState('PUBLISHED');
   const [createJobRequest, setCreateJobRequest] = useState({
     title: '',
     description: '',
     location: '',
     salary: '',
     requiredExperience: '',
-    status: 'PUBLISHED',
+    status: jobStatus,
     requirements: [],
     benefits: [],
   });
@@ -69,8 +64,8 @@ const Jobs = () => {
 
   useEffect(() => {
     jobService.getJobs()
-      .then((res) => {
-        setJobs(res.data);
+      .then(response => {
+        setJobs(response.data);
         setLoading(false);
       })
       .catch(err => console.error(err))
@@ -139,13 +134,26 @@ const Jobs = () => {
     const finalRequest = {
       ...createJobRequest,
       requirements: requirementsArray,
-      benefits: benefitsArray
+      benefits: benefitsArray,
+      status: jobStatus
     };
 
     jobService.createJob(finalRequest)
-      .then((res) => {
-        setJobs(res.data);
-        setModal(false);
+      .then(response => {
+        setJobs([...jobs, response.data]);
+        setCreateJobRequest({
+          title: '',
+          description: '',
+          location: '',
+          salary: '',
+          requiredExperience: '',
+          status: jobStatus,
+          requirements: [],
+          benefits: []
+        })
+        setRequirementsInput('');
+        setBenefitsInput('');
+        toast.success(`Job ${response.data.title} created successfully`)
       })
       .catch(err => {
         console.error(err)
@@ -155,10 +163,40 @@ const Jobs = () => {
       })
   }
 
-  const handleJobDelete = (id) => {
+  const handleJobPublish = (event, id) => {
+    event.preventDefault()
+
+    jobService.publishJob(id)
+      .then(() => {
+        setJobs([...jobs.map(job => job.id === id ? {...job, status: 'PUBLISHED'} : job)]);
+        toast.success('Job published successfully')
+      })
+      .catch(err => {
+        console.error(err)
+        toast.error('Could not publish job')
+      })
+  }
+
+  const handleJobUnpublish = (event, id) => {
+    event.preventDefault()
+
+    jobService.unpublishJob(id)
+      .then(() => {
+        setJobs([...jobs.map(job => job.id === id ? {...job, status: 'UNPUBLISHED'} : job)]);
+        toast.success('Job unpublished successfully')
+      })
+      .catch(err => {
+        console.error(err)
+        toast.error('Could not unpublish job')
+      })
+  }
+
+  const handleJobDelete = (event, id) => {
+    event.preventDefault()
+
     jobService.deleteJob(id)
-      .then((res) => {
-        setJobs(res.data);
+      .then(() => {
+        setJobs([...jobs.filter(job => job.id !== id)]);
         toast.success('Job deleted successfully')
       })
       .catch(err => {
@@ -170,27 +208,15 @@ const Jobs = () => {
   return (
     <>
       <CRow>
-        <CCol xs>
+        <CCol>
           <CCard className="mb-4">
             <CCardHeader>
-              <div className="d-flex w-100 justify-content-between align-items-center">
-                <span>Manage jobs</span>
-                <CButton color="primary"
-                         className="d-flex align-items-center"
-                         onClick={() => setModal(!modal)}>
-                  <FiBriefcase className="me-1" size={16} />
-                  Create new
-                </CButton>
-              </div>
-              <CModal
-                visible={modal}
-                onClose={() => setModal(false)}
-              >
-                <CModalHeader>
-                  <CModalTitle>Create new job</CModalTitle>
-                </CModalHeader>
-                <CModalBody>
-                  <CForm onChange={handleFieldsChange}>
+              <span>Create new job</span>
+            </CCardHeader>
+            <CCardBody>
+              <CForm onChange={handleFieldsChange}>
+                <CRow className="mb-3">
+                  <CCol md={6}>
                     <CFormInput
                       name="title"
                       type="text"
@@ -198,76 +224,107 @@ const Jobs = () => {
                       placeholder="Software Engineer..."
                       text="Must be 3-50 characters long"
                       required
+                      value={createJobRequest.title}
                       valid={createJobRequest.title !== '' && !titleError}
                       invalid={titleError}
                     />
-                    <br/>
-                    <CFormTextarea
-                      name="description"
-                      type="text"
-                      label="Description"
-                      placeholder="Job description"
-                      rows={3}
-                      text="Must be 3-1000 characters long"
-                      required
-                      valid={createJobRequest.description !== '' && !descriptionError}
-                      invalid={descriptionError}
-                    ></CFormTextarea>
-                    <br/>
-                    <CFormInput
-                      name="location"
-                      type="text"
-                      label="Location"
-                      placeholder="Amsterdam / Warsaw / Remote..."
-                      text="Must not be empty"
-                      required
-                      valid={createJobRequest.location !== '' && !locationError}
-                      invalid={locationError}
-                    />
-                    <br/>
-                    <CFormInput
-                      name="salary"
-                      type="text"
-                      label="Estimated salary"
-                      placeholder="$10000"
-                    />
-                    <br/>
-                    <CFormInput
-                      name="requiredExperience"
-                      type="text"
-                      label="Required experience"
-                      placeholder="2 years"
-                    />
-                    <br/>
-                    <CFormSelect name="status"
-                                 label="Status on create">
-                      <option value="PUBLISHED">Published</option>
-                      <option value="SCHEDULED">Scheduled</option>
-                      <option value="UNPUBLISHED">Unpublished</option>
-                    </CFormSelect>
-                    <br/>
+                    <div className="mt-3">
+                      <CFormTextarea
+                        name="description"
+                        type="text"
+                        label="Description"
+                        placeholder="Job description"
+                        rows={3}
+                        text="Must be 3-1000 characters long"
+                        required
+                        value={createJobRequest.description}
+                        valid={createJobRequest.description !== '' && !descriptionError}
+                        invalid={descriptionError}
+                      ></CFormTextarea>
+                    </div>
+                    <div className="mt-3">
+                      <CFormInput
+                        name="location"
+                        type="text"
+                        label="Location"
+                        placeholder="Amsterdam / Warsaw / Remote..."
+                        text="Must not be empty"
+                        required
+                        value={createJobRequest.location}
+                        valid={createJobRequest.location !== '' && !locationError}
+                        invalid={locationError}
+                      />
+                    </div>
+                  </CCol>
+
+                  <CCol md={6}>
                     <CFormInput
                       name="requirements"
                       type="text"
                       label="Requirements"
+                      value={requirementsInput}
                       placeholder="Python, Java, C++..."
                     />
-                    <br/>
-                    <CFormInput
-                      name="benefits"
-                      type="text"
-                      label="Benefits"
-                      placeholder="Free lunch, Gym membership..."
-                    />
-                  </CForm>
-                </CModalBody>
-                <CModalFooter>
-                  <CButton color="secondary" onClick={() => setModal(false)}>
-                    Close
-                  </CButton>
-                  <CButton color="primary" onClick={() => handleJobCreate()}>Save changes</CButton>
-                </CModalFooter>
-              </CModal>
+                    <div className="mt-3">
+                      <CFormInput
+                        name="benefits"
+                        type="text"
+                        label="Benefits"
+                        value={benefitsInput}
+                        placeholder="Free lunch, Gym membership..."
+                      />
+                    </div>
+                    <div className="mt-3">
+                      <CFormInput
+                        name="salary"
+                        type="text"
+                        label="Estimated salary"
+                        value={createJobRequest.salary}
+                        placeholder="$10000"
+                      />
+                    </div>
+                    <div className="mt-3">
+                      <CFormInput
+                        name="requiredExperience"
+                        type="text"
+                        label="Required experience"
+                        value={createJobRequest.requiredExperience}
+                        placeholder="2 years"
+                      />
+                    </div>
+                    <div className="mt-3">
+                      <CFormCheck
+                        id="check1"
+                        label="Auto publish job after creation"
+                        defaultChecked={jobStatus === "PUBLISHED"}
+                        onChange={event =>
+                          event.target.checked === true ?
+                            setJobStatus("PUBLISHED") :
+                            setJobStatus("UNPUBLISHED")}
+                      />
+                    </div>
+                  </CCol>
+                </CRow>
+
+                <CButton
+                  color="primary"
+                  className="mt-3"
+                  onClick={handleJobCreate}
+                >
+                  Create job
+                </CButton>
+              </CForm>
+            </CCardBody>
+          </CCard>
+        </CCol>
+      </CRow>
+      <CRow>
+        <CCol xs>
+          <CCard className="mb-4">
+          <CCardHeader>
+              <div className="d-flex w-100 justify-content-between align-items-center">
+                <span>Manage jobs</span>
+              </div>
             </CCardHeader>
             <CCardBody>
               <CRow>
@@ -307,8 +364,8 @@ const Jobs = () => {
               <CTable align="middle" className="mb-0 border" hover responsive>
                 <CTableHead className="text-nowrap">
                   <CTableRow>
-                    <CTableHeaderCell className="bg-body-tertiary">ID</CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary text-center">Title</CTableHeaderCell>
+                    <CTableHeaderCell className="bg-body-tertiary">Title</CTableHeaderCell>
+                    <CTableHeaderCell className="bg-body-tertiary text-center">Location</CTableHeaderCell>
                     <CTableHeaderCell className="bg-body-tertiary text-center">Salary</CTableHeaderCell>
                     <CTableHeaderCell className="bg-body-tertiary text-center">Status</CTableHeaderCell>
                     <CTableHeaderCell className="bg-body-tertiary text-end">Actions</CTableHeaderCell>
@@ -318,10 +375,10 @@ const Jobs = () => {
                   {jobs.map((item, index) => (
                     <CTableRow v-for="item in tableItems" key={index}>
                       <CTableDataCell>
-                        <div className="text-nowrap">{item.id}</div>
+                        <div className="fw-semibold text-nowrap">{item.title}</div>
                       </CTableDataCell>
                       <CTableDataCell className="text-center">
-                        <div className="fw-semibold text-nowrap">{item.title}</div>
+                        <div className="text-nowrap">{item.location}</div>
                       </CTableDataCell>
                       <CTableDataCell className="text-center">
                         <div className="text-nowrap">{item.salary === '' ? 'Undisclosed' : item.salary}</div>
@@ -340,8 +397,11 @@ const Jobs = () => {
                               <FiUpload className="me-1" size={16} />
                               Publish
                             </CDropdownToggle>
-                            <CDropdownMenu className="table-dropdown-fix">
-                              <CDropdownItem href="#" className="d-flex align-items-center">
+                            <CDropdownMenu>
+                              <CDropdownItem
+                                className="d-flex align-items-center"
+                                onClick={event => handleJobPublish(event, item.id)}
+                              >
                                 <FiSend className="me-2" size={16} />
                                 Publish now
                               </CDropdownItem>
@@ -360,12 +420,15 @@ const Jobs = () => {
                               <FiCalendar className="me-1" size={16} />
                               Schedule
                             </CDropdownToggle>
-                            <CDropdownMenu className="table-dropdown-fix">
+                            <CDropdownMenu>
                               <CDropdownItem href="#" className="d-flex align-items-center">
                                 <FiClock className="me-2" size={16} />
                                 Reschedule
                               </CDropdownItem>
-                              <CDropdownItem href="#" className="d-flex align-items-center">
+                              <CDropdownItem
+                                className="d-flex align-items-center"
+                                onClick={event => handleJobPublish(event, item.id)}
+                              >
                                 <FiZap className="me-2" size={16} />
                                 Publish now
                               </CDropdownItem>
@@ -382,6 +445,7 @@ const Jobs = () => {
                           <CButton
                             className="text-white bg-danger me-1 align-items-center"
                             size="sm"
+                            onClick={event => handleJobUnpublish(event, item.id)}
                           >
                             <FiArchive className="me-1" size={16} />
                             Unpublish
@@ -400,8 +464,10 @@ const Jobs = () => {
                           <CDropdownToggle color="light" className="rounded-1" caret={false} size="sm">
                             <FiMoreHorizontal size={16} />
                           </CDropdownToggle>
-                          <CDropdownMenu className="table-dropdown-fix">
-                            <CDropdownItem href="#" className="text-danger d-flex align-items-center">
+                          <CDropdownMenu>
+                            <CDropdownItem
+                              className="text-danger d-flex align-items-center"
+                              onClick={event => handleJobDelete(event, item.id)}>
                               <FiTrash2 className="me-2" size={16} />
                               Delete
                             </CDropdownItem>

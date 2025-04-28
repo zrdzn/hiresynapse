@@ -12,23 +12,26 @@ export const jobService = {
   getJobs: () => {
     return api.get(`${JOBS_URL}`)
   },
-  getPublishedJobs: () => {
-    return api.get(`${JOBS_URL}/published`)
-  },
-  getJobById: (jobId) => {
+  getJob: (jobId) => {
     if (!jobId) {
       throw new Error('Job ID is required')
     }
     return api.get(`${JOBS_URL}/${jobId}`)
   },
-  updateJob: (jobId, request) => {
+  getPublishedJobs: () => {
+    return api.get(`${JOBS_URL}/published`)
+  },
+  publishJob: (jobId) => {
     if (!jobId) {
       throw new Error('Job ID is required')
     }
-    if (!request) {
-      throw new Error('Request is required')
+    return api.patch(`${JOBS_URL}/${jobId}/publish`)
+  },
+  unpublishJob: (jobId) => {
+    if (!jobId) {
+      throw new Error('Job ID is required')
     }
-    return api.patch(`${JOBS_URL}/${jobId}`, request)
+    return api.patch(`${JOBS_URL}/${jobId}/unpublish`)
   },
   deleteJob: (jobId) => {
     if (!jobId) {
