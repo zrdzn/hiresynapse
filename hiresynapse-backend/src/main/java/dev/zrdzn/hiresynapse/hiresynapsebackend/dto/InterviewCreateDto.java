@@ -1,5 +1,6 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.dto;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.InterviewStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.InterviewType;
 import jakarta.validation.constraints.NotBlank;
 
@@ -11,6 +12,7 @@ public record InterviewCreateDto(
     String candidateId,
     Instant interviewAt,
     InterviewType interviewType,
+    InterviewStatus interviewStatus,
     String notes,
     boolean enableQuestions,
     int questionsAmount

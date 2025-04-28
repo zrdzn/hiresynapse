@@ -92,6 +92,7 @@ const Interviews = () => {
       candidateId: selectedCandidate.id,
       interviewAt: dateTime.toISOString(),
       interviewType: interviewType,
+      interviewStatus: interviewStatus,
       notes: notes,
       enableQuestions: questions,
       questionsAmount: questionsAmount
@@ -99,7 +100,15 @@ const Interviews = () => {
 
     interviewService.createInterview(request)
       .then(response => {
-        setConfirmedInterviews([...interviews, response.data])
+        if (interviewStatus === "CONFIRMED") {
+          setConfirmedInterviews([...confirmedInterviews, response.data])
+        }
+
+        if (interviewStatus === "SCHEDULED") {
+          setUnconfirmedInterviews([...unconfirmedInterviews, response.data])
+        }
+
+        setInterviews([...interviews, response.data])
         toast.success("Interview scheduled successfully")
       })
       .catch(err => {
@@ -329,7 +338,7 @@ const Interviews = () => {
                         <CTableDataCell className="text-center">
                           <div>{item.recruiter.firstName} {item.recruiter.lastName}</div>
                           <div className="small text-body-secondary text-nowrap">
-                            <span>{item.recruiter.email}</span> | {item.recruiter.phone}
+                            <span>{item.recruiter.email}</span>
                           </div>
                         </CTableDataCell>
                         <CTableDataCell className="text-center">

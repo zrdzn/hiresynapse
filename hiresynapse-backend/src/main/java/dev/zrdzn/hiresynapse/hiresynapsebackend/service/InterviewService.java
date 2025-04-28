@@ -71,13 +71,21 @@ public class InterviewService {
         User recruiter = userService.getUser(recruiterId).orElseThrow();
         Candidate candidate = candidateService.getCandidate(interviewCreateDto.candidateId()).orElseThrow();
 
+        if (interviewCreateDto.interviewStatus() == InterviewStatus.CANCELLED) {
+            throw new IllegalArgumentException("New interview cannot be created with cancelled status");
+        }
+
+        if (interviewCreateDto.interviewStatus() == InterviewStatus.COMPLETED) {
+            throw new IllegalArgumentException("New interview cannot be created with completed status");
+        }
+
         Interview interview = new Interview(
             null,
             recruiter,
             candidate,
             null,
             null,
-            InterviewStatus.SCHEDULED,
+            interviewCreateDto.interviewStatus(),
             TaskStatus.PENDING,
             interviewCreateDto.interviewAt(),
             null,

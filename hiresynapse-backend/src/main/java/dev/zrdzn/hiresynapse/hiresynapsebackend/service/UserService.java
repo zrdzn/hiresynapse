@@ -17,8 +17,8 @@ public class UserService {
     }
 
     public User createUser(String id, String username, String email, String firstName, String lastName, UserRole role, String pictureUrl) {
-        User user = userRepository.save(new User(id, username, firstName, lastName, email, role, pictureUrl));
-        return new User(user.getId(), user.getUsername(), user.getEmail(), firstName, lastName, user.getRole(), user.getPictureUrl());
+        User user = userRepository.save(new User(id, username, email, firstName, lastName, role, pictureUrl));
+        return new User(user.getId(), user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole(), user.getPictureUrl());
     }
 
     public Optional<User> getUser(String id) {
