@@ -1,6 +1,7 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.JobStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
@@ -125,6 +126,9 @@ public class JobService {
     }
 
     public void deleteJob(String jobId) {
+        Query candidateQuery = new Query(Criteria.where("job.$id").is(jobId));
+        mongoTemplate.remove(candidateQuery, Candidate.class);
+
         jobRepository.deleteById(jobId);
         logger.info("Deleted job: {}", jobId);
     }

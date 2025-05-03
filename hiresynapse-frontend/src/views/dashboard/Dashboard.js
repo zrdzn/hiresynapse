@@ -14,10 +14,11 @@ import {
   CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {cilBriefcase, cilCalendar, cilClock, cilLocationPin} from '@coreui/icons'
+import {cilCalendar, cilLocationPin} from '@coreui/icons'
 import Widgets from '../widgets/Widgets'
 import MainChart from './MainChart'
 import {statService} from "../../services/statService";
+import {capitalize} from "../../hooks/wordCapitalizeUtil";
 
 const Dashboard = () => {
   const [stats, setStats] = useState([]);
@@ -46,20 +47,6 @@ const Dashboard = () => {
     { title: 'Interviews', value: '487 Candidates', percent: 18, color: 'warning' },
     { title: 'Offers Extended', value: '123 Candidates', percent: 4, color: 'danger' },
     { title: 'Acceptance Rate', value: 'Average Rate', percent: 82.5, color: 'primary' },
-  ]
-
-  const jobApplicants = [
-    { title: 'Software Engineer', icon: cilBriefcase, percent: 35, value: '946' },
-    { title: 'Product Manager', icon: cilBriefcase, percent: 27, value: '730' },
-    { title: 'UX Designer', icon: cilBriefcase, percent: 21, value: '568' },
-    { title: 'Other', icon: cilBriefcase, percent: 17, value: '459' },
-  ]
-
-  const interviewStatuses = [
-    { title: 'Completed', icon: cilClock, percent: 75, value: '45 days' },
-    { title: 'Confirmed', icon: cilClock, percent: 58, value: '35 days' },
-    { title: 'Scheduled', icon: cilClock, percent: 42, value: '25 days' },
-    { title: 'Cancelled', icon: cilClock, percent: 33, value: '20 days' },
   ]
 
   return (
@@ -141,9 +128,9 @@ const Dashboard = () => {
                   </CRow>
                   <hr className="mt-0" />
 
-                  <h6 className="mb-3">Job locations</h6>
-                  {stats.jobTitleCount.length > 0 ? (
-                    stats.jobTitleCount.map((item, index) => (
+                  <h6 className="mb-3">Application sources</h6>
+                  {stats.utmSourceCount.length > 0 ? (
+                    stats.utmSourceCount.map((item, index) => (
                       <div className="progress-group" key={index}>
                         <div className="progress-group-header">
                           <CIcon className="me-2" icon={cilLocationPin} size="lg" />
@@ -153,7 +140,7 @@ const Dashboard = () => {
                           </span>
                         </div>
                         <div className="progress-group-bars">
-                          <CProgress thin color="info" value={item.percentage} />
+                          <CProgress thin color="success" value={item.percentage} />
                         </div>
                       </div>
                     ))
@@ -164,21 +151,24 @@ const Dashboard = () => {
                   <div className="mb-5"></div>
 
                   <h6 className="mb-3">Interview statuses</h6>
-                  {interviewStatuses.map((item, index) => (
-                    <div className="progress-group" key={index}>
-                      <div className="progress-group-header">
-                        <CIcon className="me-2" icon={item.icon} size="lg" />
-                        <span>{item.title}</span>
-                        <span className="ms-auto fw-semibold">
-                          {item.value}{' '}
-                          <span className="text-body-secondary small">({item.percent}%)</span>
-                        </span>
+                  {stats.interviewStatusCount.length > 0 ? (
+                    stats.interviewStatusCount.map((item, index) => (
+                      <div className="progress-group" key={index}>
+                        <div className="progress-group-header">
+                          <CIcon className="me-2" icon={cilCalendar} size="lg" />
+                          <span>{capitalize(item.status)}</span>
+                          <span className="ms-auto fw-semibold">
+                            {item.count} <span className="text-body-secondary small">({item.percentage.toFixed(2)}%)</span>
+                          </span>
+                        </div>
+                        <div className="progress-group-bars">
+                          <CProgress thin color="success" value={item.percentage} />
+                        </div>
                       </div>
-                      <div className="progress-group-bars">
-                        <CProgress thin color="danger" value={item.percent} />
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-center text-body-secondary">No data yet</p>
+                  )}
                 </CCol>
                 <CCol xs={12} md={6} xl={6}>
                   <CRow>
@@ -199,21 +189,24 @@ const Dashboard = () => {
                   <hr className="mt-0" />
 
                   <h6 className="mb-3">Job applicants</h6>
-                  {jobApplicants.map((item, index) => (
-                    <div className="progress-group" key={index}>
-                      <div className="progress-group-header">
-                        <CIcon className="me-2" icon={item.icon} size="lg" />
-                        <span>{item.title}</span>
-                        <span className="ms-auto fw-semibold">
-                          {item.value}{' '}
-                          <span className="text-body-secondary small">({item.percent}%)</span>
-                        </span>
+                  {stats.jobTitleCount.length > 0 ? (
+                    stats.jobTitleCount.map((item, index) => (
+                      <div className="progress-group" key={index}>
+                        <div className="progress-group-header">
+                          <CIcon className="me-2" icon={cilCalendar} size="lg" />
+                          <span>{item.title}</span>
+                          <span className="ms-auto fw-semibold">
+                            {item.count} <span className="text-body-secondary small">({item.percentage.toFixed(2)}%)</span>
+                          </span>
+                        </div>
+                        <div className="progress-group-bars">
+                          <CProgress thin color="success" value={item.percentage} />
+                        </div>
                       </div>
-                      <div className="progress-group-bars">
-                        <CProgress thin color="warning" value={item.percent} />
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-center text-body-secondary">No data yet</p>
+                  )}
 
                   <div className="mb-5"></div>
 
@@ -223,7 +216,7 @@ const Dashboard = () => {
                       <div className="progress-group" key={index}>
                         <div className="progress-group-header">
                           <CIcon className="me-2" icon={cilCalendar} size="lg" />
-                          <span>{item.interviewType}</span>
+                          <span>{capitalize(item.interviewType)}</span>
                           <span className="ms-auto fw-semibold">
                             {item.count} <span className="text-body-secondary small">({item.percentage.toFixed(2)}%)</span>
                           </span>

@@ -7,6 +7,7 @@ import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.AnalysedResumeDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.CandidateCreateDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.JobTitleCountDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.UtmSourceCountDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.event.CandidateCreateEvent;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.CandidateStatus;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.ConvertOperators;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -38,6 +40,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +52,7 @@ import java.util.concurrent.CompletionException;
 import static dev.zrdzn.hiresynapse.hiresynapsebackend.ai.AiPrompts.CANDIDATE_RESUME_ANALYZE_PROMPT;
 import static dev.zrdzn.hiresynapse.hiresynapsebackend.shared.CollectionHelper.emptyListIfNull;
 import static dev.zrdzn.hiresynapse.hiresynapsebackend.shared.CollectionHelper.emptyMapIfNull;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.addFields;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.group;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.lookup;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.project;
@@ -101,6 +105,7 @@ public class CandidateService {
             candidateCreateDto.email(),
             CandidateStatus.PENDING,
             TaskStatus.PENDING,
+            candidateCreateDto.utmSource(),
             null,
             null,
             null,
@@ -187,6 +192,8 @@ public class CandidateService {
                 if (response.startsWith("```json")) {
                     response = response.substring(7, response.length() - 3).trim();
                 }
+
+                logger.info("Received response from AI: {}", response);
 
                 try {
                     AnalysedResumeDto analysedResume = objectMapper.readValue(response, AnalysedResumeDto.class);
@@ -302,24 +309,74 @@ public class CandidateService {
 
     public List<JobTitleCountDto> getJobTitleCount() {
         Aggregation aggregation = Aggregation.newAggregation(
-            lookup("jobs", "job", "_id", "job"),
-            unwind("job"),
-            group("job.title")
-                .count()
-                .as("count"),
-            project()
-                .andExpression("_id").as("title")
-                .andExpression("count").as("count")
+            addFields()
+                .addField("jobId").withValue(ConvertOperators.ToObjectId.toObjectId("$job.$id"))
+                .build(),
+            lookup("jobs", "job", "_id", "jobDetails"),
+            unwind("jobDetails", true),
+            group("jobDetails.title")
+                .count().as("count"),
+            project("count")
+                .and("_id").as("title")
         );
 
-        List<JobTitleCountDto> jobTitleCounts = mongoTemplate.aggregate(aggregation, Candidate.class, JobTitleCountDto.class).getMappedResults();
-        long totalCount = jobTitleCounts.stream().mapToLong(JobTitleCountDto::count).sum();
+        List<JobTitleCountDto> jobTitleCounts = mongoTemplate
+            .aggregate(aggregation, Candidate.class, JobTitleCountDto.class)
+            .getMappedResults();
 
-        return jobTitleCounts.stream()
+        List<JobTitleCountDto> filteredResults = new ArrayList<>();
+        long totalJobs = 0;
+
+        for (JobTitleCountDto jobTitleCount : jobTitleCounts) {
+            if (jobTitleCount.count() > 0 && jobTitleCount.title() != null) {
+                filteredResults.add(jobTitleCount);
+                totalJobs += jobTitleCount.count();
+            }
+        }
+
+        long finalCount = totalJobs;
+
+        return filteredResults.stream()
             .map(jobTitleCount -> new JobTitleCountDto(
                 jobTitleCount.title(),
                 jobTitleCount.count(),
-                (double) jobTitleCount.count() / totalCount * 100
+                (double) jobTitleCount.count() / finalCount * 100
+            ))
+            .toList();
+    }
+
+    public List<UtmSourceCountDto> getUtmSourceCount() {
+        Aggregation aggregation = Aggregation.newAggregation(
+            group("utmSource")
+                .count()
+                .as("count"),
+            project()
+                .andExpression("_id").as("utmSource")
+                .andExpression("count").as("count")
+        );
+
+        List<UtmSourceCountDto> utmSourceCounts = mongoTemplate
+            .aggregate(aggregation, Candidate.class, UtmSourceCountDto.class)
+            .getMappedResults();
+
+        List<UtmSourceCountDto> filteredResults = new ArrayList<>();
+        long totalSources = 0;
+
+        // include only non-empty interview types
+        for (UtmSourceCountDto utmSourceCount : utmSourceCounts) {
+            if (utmSourceCount.count() > 0 && utmSourceCount.source() != null) {
+                filteredResults.add(utmSourceCount);
+                totalSources += utmSourceCount.count();
+            }
+        }
+
+        long finalTotalSources = totalSources;
+
+        return filteredResults.stream()
+            .map(utmSource -> new UtmSourceCountDto(
+                utmSource.source(),
+                utmSource.count(),
+                (double) utmSource.count() / finalTotalSources * 100
             ))
             .toList();
     }

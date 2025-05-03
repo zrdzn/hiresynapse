@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.ai.AiClient;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.InterviewCreateDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.InterviewStatusCountDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.InterviewTypeCountDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.event.InterviewCreateEvent;
@@ -31,6 +32,7 @@ import org.springframework.validation.annotation.Validated;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -230,6 +232,42 @@ public class InterviewService {
         return (int) interviewRepository.count();
     }
 
+    public List<InterviewStatusCountDto> getInterviewStatusCount() {
+        Aggregation aggregation = Aggregation.newAggregation(
+            group("status")
+                .count()
+                .as("count"),
+            project()
+                .andExpression("_id").as("status")
+                .andExpression("count").as("count")
+        );
+
+        List<InterviewStatusCountDto> interviewStatusCounts = mongoTemplate
+            .aggregate(aggregation, Interview.class, InterviewStatusCountDto.class)
+            .getMappedResults();
+
+        List<InterviewStatusCountDto> filteredResults = new ArrayList<>();
+        long totalInterviews = 0;
+
+        // include only non-empty interview statuses
+        for (InterviewStatusCountDto interviewStatusCount : interviewStatusCounts) {
+            if (interviewStatusCount.count() > 0 && interviewStatusCount.status() != null) {
+                filteredResults.add(interviewStatusCount);
+                totalInterviews += interviewStatusCount.count();
+            }
+        }
+
+        long finalTotalInterviews = totalInterviews;
+
+        return filteredResults.stream()
+            .map(interview -> new InterviewStatusCountDto(
+                interview.status(),
+                interview.count(),
+                (double) interview.count() / finalTotalInterviews * 100
+            ))
+            .toList();
+    }
+
     public List<InterviewTypeCountDto> getInterviewTypeCount() {
         Aggregation aggregation = Aggregation.newAggregation(
             group("interviewType")
@@ -240,14 +278,28 @@ public class InterviewService {
                 .andExpression("count").as("count")
         );
 
-        List<InterviewTypeCountDto> interviewTypeCounts = mongoTemplate.aggregate(aggregation, Candidate.class, InterviewTypeCountDto.class).getMappedResults();
-        long totalInterviews = interviewTypeCounts.stream().mapToLong(InterviewTypeCountDto::count).sum();
+        List<InterviewTypeCountDto> interviewTypeCounts = mongoTemplate
+            .aggregate(aggregation, Interview.class, InterviewTypeCountDto.class)
+            .getMappedResults();
 
-        return interviewTypeCounts.stream()
+        List<InterviewTypeCountDto> filteredResults = new ArrayList<>();
+        long totalInterviews = 0;
+
+        // include only non-empty interview types
+        for (InterviewTypeCountDto interviewTypeCount : interviewTypeCounts) {
+            if (interviewTypeCount.count() > 0 && interviewTypeCount.interviewType() != null) {
+                filteredResults.add(interviewTypeCount);
+                totalInterviews += interviewTypeCount.count();
+            }
+        }
+
+        long finalTotalInterviews = totalInterviews;
+
+        return filteredResults.stream()
             .map(interview -> new InterviewTypeCountDto(
                 interview.interviewType(),
                 interview.count(),
-                (double) interview.count() / totalInterviews * 100
+                (double) interview.count() / finalTotalInterviews * 100
             ))
             .toList();
     }

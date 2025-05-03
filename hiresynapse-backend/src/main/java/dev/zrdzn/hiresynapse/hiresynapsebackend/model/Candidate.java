@@ -39,6 +39,7 @@ public class Candidate implements StatPoint, Serializable {
 
     private CandidateStatus status;
     private TaskStatus taskStatus;
+    private String utmSource;
 
     private String firstName;
     private String lastName;

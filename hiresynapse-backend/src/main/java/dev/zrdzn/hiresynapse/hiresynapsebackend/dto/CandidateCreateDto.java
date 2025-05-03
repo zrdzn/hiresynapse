@@ -8,6 +8,7 @@ public record CandidateCreateDto(
     @NotBlank(message = "Email is required")
     String email,
     @NotBlank(message = "Job id is required")
-    String jobId
+    String jobId,
+    String utmSource
 ) implements Serializable {
 }
