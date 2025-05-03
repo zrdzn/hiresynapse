@@ -1,9 +1,11 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.JobStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.JobRepository;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatHelper;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +17,11 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -95,7 +101,30 @@ public class JobService {
         return jobRepository.findById(jobId);
     }
 
-    public void deleteJob(String requesterId, String jobId) {
+    public int getJobCount() {
+        return (int) jobRepository.count();
+    }
+
+    public MonthlyDataDto getJobsFromLastSixMonths() {
+        LocalDate sixMonthsAgo = LocalDate.now().minusMonths(6);
+        Instant startDate = sixMonthsAgo.atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("createdAt").gte(startDate));
+
+        List<Job> jobs = mongoTemplate.find(query, Job.class);
+
+        Map<String, Integer> monthlyData = StatHelper.countByMonth(jobs);
+        double growthRate = StatHelper.calculateGrowthRate(monthlyData);
+
+        return new MonthlyDataDto(
+            jobs.size(),
+            growthRate,
+            monthlyData
+        );
+    }
+
+    public void deleteJob(String jobId) {
         jobRepository.deleteById(jobId);
         logger.info("Deleted job: {}", jobId);
     }

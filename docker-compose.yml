@@ -31,19 +31,6 @@ services:
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
 
-  influxdb:
-    image: influxdb:latest
-    container_name: influxdb
-    restart: always
-    environment:
-      INFLUXDB_ADMIN_USER: admin
-      INFLUXDB_ADMIN_PASSWORD: password
-      INFLUXDB_DB: metrics_db
-    ports:
-      - "8086:8086"
-    networks:
-      - app-network
-
 networks:
   app-network:
     driver: bridge

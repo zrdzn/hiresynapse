@@ -1,25 +1,29 @@
 import React, {useEffect, useRef} from 'react'
 import PropTypes from 'prop-types'
 
-import {CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CRow, CWidgetStatsA,} from '@coreui/react'
+import {CCol, CRow, CWidgetStatsA} from '@coreui/react'
 import {getStyle} from '@coreui/utils'
 import {CChartLine} from '@coreui/react-chartjs'
 import CIcon from '@coreui/icons-react'
-import {cilArrowBottom, cilArrowTop, cilOptions} from '@coreui/icons'
+import {cilArrowBottom, cilArrowTop} from '@coreui/icons'
 
-const WidgetsDropdown = (props) => {
+const Widgets = ({ stats, className }) => {
   const widgetChartRef1 = useRef(null)
-  const widgetChartRef2 = useRef(null)
-  const widgetChartRef3 = useRef(null)
-  const widgetChartRef4 = useRef(null)
 
-  const aiAnalysesData = [30, 42, 50, 65, 78, 92]
-  const interviewsData = [22, 35, 40, 48, 55, 60]
+  const candidatesMonthlyData = Object.values(stats.candidatesFromLastSixMonths.monthlyData)
+  const jobsMonthlyData = Object.values(stats.jobsFromLastSixMonths.monthlyData)
+  const interviewsMonthlyData = Object.values(stats.interviewsFromLastSixMonths.monthlyData)
+  const usersMonthlyData = Object.values(stats.usersFromLastSixMonths.monthlyData)
 
-  const last6Months = getLastSixMonths()
+  const candidatesLabels = Object.keys(stats.candidatesFromLastSixMonths.monthlyData)
+  const jobsLabels = Object.keys(stats.jobsFromLastSixMonths.monthlyData)
+  const interviewsLabels = Object.keys(stats.interviewsFromLastSixMonths.monthlyData)
+  const usersLabels = Object.keys(stats.usersFromLastSixMonths.monthlyData)
 
-  const aiAnalysesPercentChange = calculatePercentChange(aiAnalysesData)
-  const interviewsPercentChange = calculatePercentChange(interviewsData)
+  const candidatesGrowthRate = stats.candidatesFromLastSixMonths.growthRate
+  const jobsGrowthRate = stats.jobsFromLastSixMonths.growthRate
+  const interviewsGrowthRate = stats.interviewsFromLastSixMonths.growthRate
+  const usersGrowthRate = stats.usersFromLastSixMonths.growthRate
 
   useEffect(() => {
     document.documentElement.addEventListener('ColorSchemeChange', () => {
@@ -29,69 +33,36 @@ const WidgetsDropdown = (props) => {
           widgetChartRef1.current.update()
         })
       }
-
-      if (widgetChartRef2.current) {
-        setTimeout(() => {
-          widgetChartRef2.current.data.datasets[0].pointBackgroundColor = getStyle('--cui-info')
-          widgetChartRef2.current.update()
-        })
-      }
-
-      if (widgetChartRef3.current) {
-        setTimeout(() => {
-          widgetChartRef3.current.data.datasets[0].pointBackgroundColor = getStyle('--cui-warning')
-          widgetChartRef3.current.update()
-        })
-      }
-
-      if (widgetChartRef4.current) {
-        setTimeout(() => {
-          widgetChartRef4.current.data.datasets[0].pointBackgroundColor = getStyle('--cui-danger')
-          widgetChartRef4.current.update()
-        })
-      }
     })
-  }, [widgetChartRef1, widgetChartRef2, widgetChartRef3, widgetChartRef4])
+  }, [widgetChartRef1])
 
   return (
-    <CRow className={props.className} xs={{ gutter: 4 }}>
+    <CRow className={className} xs={{ gutter: 4 }}>
       <CCol sm={6} xl={3}>
         <CWidgetStatsA
           color="success"
           value={
             <>
-              {aiAnalysesData[aiAnalysesData.length - 1]}{' '}
+              {candidatesMonthlyData[candidatesMonthlyData.length - 1]}{' '}
               <span className="fs-6 fw-normal">
-                ({aiAnalysesPercentChange}% {aiAnalysesPercentChange >= 0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />})
+                ({candidatesGrowthRate}% {candidatesGrowthRate >= 0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />})
               </span>
             </>
           }
-          title="Job Offers"
-          action={
-            <CDropdown alignment="end">
-              <CDropdownToggle color="transparent" caret={false} className="text-white p-0">
-                <CIcon icon={cilOptions} />
-              </CDropdownToggle>
-              <CDropdownMenu>
-                <CDropdownItem>View Analysis Results</CDropdownItem>
-                <CDropdownItem>Run New Analysis</CDropdownItem>
-                <CDropdownItem>AI Settings</CDropdownItem>
-              </CDropdownMenu>
-            </CDropdown>
-          }
+          title="Candidates applied (Last 6 months)"
           chart={
             <CChartLine
-              ref={widgetChartRef3}
+              ref={widgetChartRef1}
               className="mt-3"
               style={{ height: '70px' }}
               data={{
-                labels: last6Months,
+                labels: candidatesLabels,
                 datasets: [
                   {
-                    label: 'AI Analyses',
+                    label: 'Candidates',
                     backgroundColor: 'rgba(255,255,255,.2)',
                     borderColor: 'rgba(255,255,255,.55)',
-                    data: aiAnalysesData,
+                    data: candidatesMonthlyData,
                     fill: true,
                   },
                 ],
@@ -129,41 +100,28 @@ const WidgetsDropdown = (props) => {
       </CCol>
       <CCol sm={6} xl={3}>
         <CWidgetStatsA
-          color="primary"
+          color="info"
           value={
             <>
-              {aiAnalysesData[aiAnalysesData.length - 1]}{' '}
+              {jobsMonthlyData[jobsMonthlyData.length - 1]}{' '}
               <span className="fs-6 fw-normal">
-                ({aiAnalysesPercentChange}% {aiAnalysesPercentChange >= 0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />})
+                ({jobsGrowthRate}% {jobsGrowthRate >= 0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />})
               </span>
             </>
           }
-          title="AI Analyses Performed"
-          action={
-            <CDropdown alignment="end">
-              <CDropdownToggle color="transparent" caret={false} className="text-white p-0">
-                <CIcon icon={cilOptions} />
-              </CDropdownToggle>
-              <CDropdownMenu>
-                <CDropdownItem>View Analysis Results</CDropdownItem>
-                <CDropdownItem>Run New Analysis</CDropdownItem>
-                <CDropdownItem>AI Settings</CDropdownItem>
-              </CDropdownMenu>
-            </CDropdown>
-          }
+          title="Jobs created (Last 6 months)"
           chart={
             <CChartLine
-              ref={widgetChartRef3}
               className="mt-3"
               style={{ height: '70px' }}
               data={{
-                labels: last6Months,
+                labels: jobsLabels,
                 datasets: [
                   {
-                    label: 'AI Analyses',
+                    label: 'Jobs',
                     backgroundColor: 'rgba(255,255,255,.2)',
                     borderColor: 'rgba(255,255,255,.55)',
-                    data: aiAnalysesData,
+                    data: jobsMonthlyData,
                     fill: true,
                   },
                 ],
@@ -204,38 +162,25 @@ const WidgetsDropdown = (props) => {
           color="warning"
           value={
             <>
-              {aiAnalysesData[aiAnalysesData.length - 1]}{' '}
+              {interviewsMonthlyData[interviewsMonthlyData.length - 1]}{' '}
               <span className="fs-6 fw-normal">
-                ({aiAnalysesPercentChange}% {aiAnalysesPercentChange >= 0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />})
+                ({interviewsGrowthRate}% {interviewsGrowthRate >= 0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />})
               </span>
             </>
           }
-          title="Candidates Applied"
-          action={
-            <CDropdown alignment="end">
-              <CDropdownToggle color="transparent" caret={false} className="text-white p-0">
-                <CIcon icon={cilOptions} />
-              </CDropdownToggle>
-              <CDropdownMenu>
-                <CDropdownItem>View Analysis Results</CDropdownItem>
-                <CDropdownItem>Run New Analysis</CDropdownItem>
-                <CDropdownItem>AI Settings</CDropdownItem>
-              </CDropdownMenu>
-            </CDropdown>
-          }
+          title="Interviews conducted (Last 6 months)"
           chart={
             <CChartLine
-              ref={widgetChartRef3}
               className="mt-3"
               style={{ height: '70px' }}
               data={{
-                labels: last6Months,
+                labels: interviewsLabels,
                 datasets: [
                   {
-                    label: 'AI Analyses',
+                    label: 'Interviews',
                     backgroundColor: 'rgba(255,255,255,.2)',
                     borderColor: 'rgba(255,255,255,.55)',
-                    data: aiAnalysesData,
+                    data: interviewsMonthlyData,
                     fill: true,
                   },
                 ],
@@ -273,41 +218,28 @@ const WidgetsDropdown = (props) => {
       </CCol>
       <CCol sm={6} xl={3}>
         <CWidgetStatsA
-          color="danger"
+          color="primary"
           value={
             <>
-              {aiAnalysesData[aiAnalysesData.length - 1]}{' '}
+              {usersMonthlyData[usersMonthlyData.length - 1]}{' '}
               <span className="fs-6 fw-normal">
-                ({aiAnalysesPercentChange}% {aiAnalysesPercentChange >= 0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />})
+                ({usersGrowthRate}% {usersGrowthRate >= 0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />})
               </span>
             </>
           }
-          title="Interviews Conducted"
-          action={
-            <CDropdown alignment="end">
-              <CDropdownToggle color="transparent" caret={false} className="text-white p-0">
-                <CIcon icon={cilOptions} />
-              </CDropdownToggle>
-              <CDropdownMenu>
-                <CDropdownItem>View Analysis Results</CDropdownItem>
-                <CDropdownItem>Run New Analysis</CDropdownItem>
-                <CDropdownItem>AI Settings</CDropdownItem>
-              </CDropdownMenu>
-            </CDropdown>
-          }
+          title="Employees joined (Last 6 months)"
           chart={
             <CChartLine
-              ref={widgetChartRef3}
               className="mt-3"
               style={{ height: '70px' }}
               data={{
-                labels: last6Months,
+                labels: usersLabels,
                 datasets: [
                   {
-                    label: 'AI Analyses',
+                    label: 'Users',
                     backgroundColor: 'rgba(255,255,255,.2)',
                     borderColor: 'rgba(255,255,255,.55)',
-                    data: aiAnalysesData,
+                    data: usersMonthlyData,
                     fill: true,
                   },
                 ],
@@ -347,33 +279,9 @@ const WidgetsDropdown = (props) => {
   )
 }
 
-function getLastSixMonths() {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const today = new Date();
-  const labels = [];
-
-  for (let i = 5; i >= 0; i--) {
-    const date = new Date();
-    date.setMonth(today.getMonth() - i);
-    labels.push(months[date.getMonth()]);
-  }
-
-  return labels;
-}
-
-function calculatePercentChange(data) {
-  if (data.length < 2 || data[0] === 0) return 0;
-
-  const firstValue = data[0];
-  const lastValue = data[data.length - 1];
-  const percentChange = ((lastValue - firstValue) / firstValue) * 100;
-
-  return Math.round(percentChange * 10) / 10;
-}
-
-WidgetsDropdown.propTypes = {
+Widgets.propTypes = {
+  stats: PropTypes.object.isRequired,
   className: PropTypes.string,
-  withCharts: PropTypes.bool,
 }
 
-export default WidgetsDropdown
+export default Widgets

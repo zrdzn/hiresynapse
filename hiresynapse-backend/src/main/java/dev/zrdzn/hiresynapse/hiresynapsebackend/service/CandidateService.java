@@ -5,18 +5,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.ai.AiClient;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.AnalysedResumeDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.CandidateCreateDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.JobTitleCountDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.event.CandidateCreateEvent;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.CandidateStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.CandidateRepository;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatHelper;
 import jakarta.validation.Valid;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -30,8 +34,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.Year;
-import java.util.Collections;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +47,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import static dev.zrdzn.hiresynapse.hiresynapsebackend.ai.AiPrompts.CANDIDATE_RESUME_ANALYZE_PROMPT;
+import static dev.zrdzn.hiresynapse.hiresynapsebackend.shared.CollectionHelper.emptyListIfNull;
+import static dev.zrdzn.hiresynapse.hiresynapsebackend.shared.CollectionHelper.emptyMapIfNull;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.group;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.lookup;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.project;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.unwind;
 
 @Service
 @Validated
@@ -82,6 +94,8 @@ public class CandidateService {
         Job job = jobService.getJob(candidateCreateDto.jobId()).orElseThrow();
 
         Candidate candidate = new Candidate(
+            null,
+            null,
             null,
             job,
             candidateCreateDto.email(),
@@ -282,12 +296,51 @@ public class CandidateService {
         return candidateRepository.findById(candidateId);
     }
 
-    private <K, V> Map<K, V> emptyMapIfNull(Map<K, V> map) {
-        return map == null ? Collections.emptyMap() : map;
+    public int getCandidateCount() {
+        return (int) candidateRepository.count();
     }
 
-    private <T> List<T> emptyListIfNull(List<T> list) {
-        return list == null ? Collections.emptyList() : list;
+    public List<JobTitleCountDto> getJobTitleCount() {
+        Aggregation aggregation = Aggregation.newAggregation(
+            lookup("jobs", "job", "_id", "job"),
+            unwind("job"),
+            group("job.title")
+                .count()
+                .as("count"),
+            project()
+                .andExpression("_id").as("title")
+                .andExpression("count").as("count")
+        );
+
+        List<JobTitleCountDto> jobTitleCounts = mongoTemplate.aggregate(aggregation, Candidate.class, JobTitleCountDto.class).getMappedResults();
+        long totalCount = jobTitleCounts.stream().mapToLong(JobTitleCountDto::count).sum();
+
+        return jobTitleCounts.stream()
+            .map(jobTitleCount -> new JobTitleCountDto(
+                jobTitleCount.title(),
+                jobTitleCount.count(),
+                (double) jobTitleCount.count() / totalCount * 100
+            ))
+            .toList();
+    }
+
+    public MonthlyDataDto getCandidatesFromLastSixMonths() {
+        LocalDate sixMonthsAgo = LocalDate.now().minusMonths(6);
+        Instant startDate = sixMonthsAgo.atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("createdAt").gte(startDate));
+
+        List<Candidate> candidates = mongoTemplate.find(query, Candidate.class);
+
+        Map<String, Integer> monthlyData = StatHelper.countByMonth(candidates);
+        double growthRate = StatHelper.calculateGrowthRate(monthlyData);
+
+        return new MonthlyDataDto(
+            candidates.size(),
+            growthRate,
+            monthlyData
+        );
     }
 
     private int calculateYearsOfExperience(Map<String, String> experience) {

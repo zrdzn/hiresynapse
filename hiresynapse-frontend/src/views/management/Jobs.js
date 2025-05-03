@@ -55,7 +55,6 @@ const Jobs = () => {
     benefits: [],
   });
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState(false);
   const [titleError, setTitleError] = useState(false);
   const [descriptionError, setDescriptionError] = useState(false);
   const [locationError, setLocationError] = useState(false);

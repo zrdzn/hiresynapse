@@ -14,15 +14,17 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<User> getMe(@AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(new User(
-            principal.getUser().getId(),
-            principal.getUser().getUsername(),
-            principal.getUser().getEmail(),
-            principal.getUser().getFirstName(),
-            principal.getUser().getLastName(),
-            principal.getUser().getRole(),
-            principal.getUser().getPictureUrl()
-        ));
+        return ResponseEntity.ok(
+            User.builder()
+                .id(principal.getUser().getId())
+                .username(principal.getUser().getUsername())
+                .email(principal.getUser().getEmail())
+                .firstName(principal.getUser().getFirstName())
+                .lastName(principal.getUser().getLastName())
+                .role(principal.getUser().getRole())
+                .pictureUrl(principal.getUser().getPictureUrl())
+                .build()
+        );
     }
 
 }

@@ -1,5 +1,6 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatPoint;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,23 +19,23 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "interviews")
-public class Interview implements Serializable {
+public class Interview implements StatPoint, Serializable {
 
     @Id
     @Nullable
     private String id;
-
-    @DBRef
-    private User recruiter;
-
-    @DBRef
-    private Candidate candidate;
 
     @CreatedDate
     private Instant createdAt;
 
     @LastModifiedDate
     private Instant updatedAt;
+
+    @DBRef
+    private User recruiter;
+
+    @DBRef
+    private Candidate candidate;
 
     private InterviewStatus status;
     private TaskStatus taskStatus;

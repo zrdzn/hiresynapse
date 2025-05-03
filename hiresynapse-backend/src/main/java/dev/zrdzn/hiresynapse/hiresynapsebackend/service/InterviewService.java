@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.ai.AiClient;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.InterviewCreateDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.InterviewTypeCountDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.event.InterviewCreateEvent;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Interview;
@@ -12,18 +14,23 @@ import dev.zrdzn.hiresynapse.hiresynapsebackend.model.InterviewStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.User;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.InterviewRepository;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatHelper;
 import jakarta.validation.Valid;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,6 +38,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import static dev.zrdzn.hiresynapse.hiresynapsebackend.ai.AiPrompts.INTERVIEW_QUESTIONS_PROMPT;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.group;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.project;
 
 @Service
 @Validated
@@ -81,10 +90,10 @@ public class InterviewService {
 
         Interview interview = new Interview(
             null,
+            null,
+            null,
             recruiter,
             candidate,
-            null,
-            null,
             interviewCreateDto.interviewStatus(),
             TaskStatus.PENDING,
             interviewCreateDto.interviewAt(),
@@ -215,6 +224,51 @@ public class InterviewService {
 
     public Optional<Interview> getInterview(String interviewId) {
         return interviewRepository.findById(interviewId);
+    }
+
+    public int getInterviewCount() {
+        return (int) interviewRepository.count();
+    }
+
+    public List<InterviewTypeCountDto> getInterviewTypeCount() {
+        Aggregation aggregation = Aggregation.newAggregation(
+            group("interviewType")
+                .count()
+                .as("count"),
+            project()
+                .andExpression("_id").as("interviewType")
+                .andExpression("count").as("count")
+        );
+
+        List<InterviewTypeCountDto> interviewTypeCounts = mongoTemplate.aggregate(aggregation, Candidate.class, InterviewTypeCountDto.class).getMappedResults();
+        long totalInterviews = interviewTypeCounts.stream().mapToLong(InterviewTypeCountDto::count).sum();
+
+        return interviewTypeCounts.stream()
+            .map(interview -> new InterviewTypeCountDto(
+                interview.interviewType(),
+                interview.count(),
+                (double) interview.count() / totalInterviews * 100
+            ))
+            .toList();
+    }
+
+    public MonthlyDataDto getInterviewsFromLastSixMonths() {
+        LocalDate sixMonthsAgo = LocalDate.now().minusMonths(6);
+        Instant startDate = sixMonthsAgo.atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("createdAt").gte(startDate));
+
+        List<Interview> interviews = mongoTemplate.find(query, Interview.class);
+
+        Map<String, Integer> monthlyData = StatHelper.countByMonth(interviews);
+        double growthRate = StatHelper.calculateGrowthRate(monthlyData);
+
+        return new MonthlyDataDto(
+            interviews.size(),
+            growthRate,
+            monthlyData
+        );
     }
 
 }

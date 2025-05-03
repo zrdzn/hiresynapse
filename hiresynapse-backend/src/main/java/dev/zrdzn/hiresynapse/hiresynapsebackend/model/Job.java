@@ -1,5 +1,6 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatPoint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -18,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "jobs")
-public class Job implements Serializable {
+public class Job implements StatPoint, Serializable {
 
     @Id
     private String id;

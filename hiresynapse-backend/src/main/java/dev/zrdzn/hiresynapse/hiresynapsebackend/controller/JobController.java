@@ -72,9 +72,8 @@ public class JobController {
 
     @DeleteMapping("/{jobId}")
     public void deleteJob(
-        @AuthenticationPrincipal UserPrincipal principal,
         @PathVariable String jobId) {
-        jobService.deleteJob(principal.getUser().getId(), jobId);
+        jobService.deleteJob(jobId);
     }
 
 }

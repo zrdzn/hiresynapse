@@ -1,15 +1,18 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatPoint;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.jetbrains.annotations.Nullable;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -17,11 +20,16 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "candidates")
-public class Candidate implements Serializable {
+public class Candidate implements StatPoint, Serializable {
 
     @Id
-    @Nullable
     private String id;
+
+    @CreatedDate
+    private Instant createdAt;
+
+    @LastModifiedDate
+    private Instant updatedAt;
 
     @DBRef
     private Job job;

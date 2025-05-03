@@ -1,69 +1,80 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import classNames from 'classnames'
 
-import {CButton, CButtonGroup, CCard, CCardBody, CCardFooter, CCardHeader, CCol, CProgress, CRow,} from '@coreui/react'
+import {
+  CButton,
+  CButtonGroup,
+  CCard,
+  CCardBody,
+  CCardFooter,
+  CCardHeader,
+  CCol,
+  CProgress,
+  CRow,
+  CSpinner,
+} from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {cilBriefcase, cilCalendar, cilClock, cilCloudDownload, cilLocationPin} from '@coreui/icons'
-import WidgetsDropdown from '../widgets/WidgetsDropdown'
+import {cilBriefcase, cilCalendar, cilClock, cilLocationPin} from '@coreui/icons'
+import Widgets from '../widgets/Widgets'
 import MainChart from './MainChart'
+import {statService} from "../../services/statService";
 
 const Dashboard = () => {
+  const [stats, setStats] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    statService.getStats()
+      .then(response => {
+        setStats(response.data);
+        setLoading(false);
+      })
+      .catch(err => console.error(err))
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="pt-3 text-center">
+        <CSpinner />
+      </div>
+    );
+  }
+
   const progressExample = [
-    { title: 'Applications', value: '2,703 Resumes', percent: 40, color: 'success' },
-    { title: 'AI Analyzed', value: '2,093 Resumes', percent: 78, color: 'info' },
+    { title: 'Accepted', value: '2,703 Candidates', percent: 40, color: 'success' },
+    { title: 'Rejected', value: '2,093 Candidates', percent: 78, color: 'danger' },
     { title: 'Interviews', value: '487 Candidates', percent: 18, color: 'warning' },
     { title: 'Offers Extended', value: '123 Candidates', percent: 4, color: 'danger' },
     { title: 'Acceptance Rate', value: 'Average Rate', percent: 82.5, color: 'primary' },
   ]
 
-  // Top 4 locations by number of applicants
-  const topLocations = [
-    { title: 'Remote', icon: cilLocationPin, percent: 42, value: '1,136' },
-    { title: 'New York', icon: cilLocationPin, percent: 28, value: '756' },
-    { title: 'San Francisco', icon: cilLocationPin, percent: 18, value: '486' },
-    { title: 'Other', icon: cilLocationPin, percent: 12, value: '325' },
-  ]
-
-  // Most popular job positions by number of applicants
-  const topJobPositions = [
+  const jobApplicants = [
     { title: 'Software Engineer', icon: cilBriefcase, percent: 35, value: '946' },
     { title: 'Product Manager', icon: cilBriefcase, percent: 27, value: '730' },
     { title: 'UX Designer', icon: cilBriefcase, percent: 21, value: '568' },
     { title: 'Other', icon: cilBriefcase, percent: 17, value: '459' },
   ]
 
-  // Time-to-hire for different departments
-  const timeToHire = [
-    { title: 'Engineering', icon: cilClock, percent: 75, value: '45 days' },
-    { title: 'Design', icon: cilClock, percent: 58, value: '35 days' },
-    { title: 'Marketing', icon: cilClock, percent: 42, value: '25 days' },
-    { title: 'Sales', icon: cilClock, percent: 33, value: '20 days' },
-  ]
-
-  // Employee retention by tenure
-  const employeeRetention = [
-    { title: '< 1 year', icon: cilCalendar, percent: 15, value: '43 employees' },
-    { title: '1-3 years', icon: cilCalendar, percent: 33, value: '95 employees' },
-    { title: '3-5 years', icon: cilCalendar, percent: 30, value: '86 employees' },
-    { title: '5+ years', icon: cilCalendar, percent: 22, value: '63 employees' },
+  const interviewStatuses = [
+    { title: 'Completed', icon: cilClock, percent: 75, value: '45 days' },
+    { title: 'Confirmed', icon: cilClock, percent: 58, value: '35 days' },
+    { title: 'Scheduled', icon: cilClock, percent: 42, value: '25 days' },
+    { title: 'Cancelled', icon: cilClock, percent: 33, value: '20 days' },
   ]
 
   return (
     <>
-      <WidgetsDropdown className="mb-4" />
+      <Widgets stats={stats} className="mb-4" />
       <CCard className="mb-4">
         <CCardBody>
           <CRow>
             <CCol sm={5}>
               <h4 id="candidates" className="card-title mb-0">
-                Candidate Flow
+                Candidate flow
               </h4>
               <div className="small text-body-secondary">January - July 2025</div>
             </CCol>
             <CCol sm={7} className="d-none d-md-block">
-              <CButton color="primary" className="float-end">
-                <CIcon icon={cilCloudDownload} />
-              </CButton>
               <CButtonGroup className="float-end me-3">
                 {['Week', 'Month', 'Quarter'].map((value) => (
                   <CButton
@@ -108,49 +119,52 @@ const Dashboard = () => {
       <CRow>
         <CCol xs>
           <CCard className="mb-4">
-            <CCardHeader>Recruitment Analytics</CCardHeader>
+            <CCardHeader>Recruitment</CCardHeader>
             <CCardBody>
               <CRow>
                 <CCol xs={12} md={6} xl={6}>
                   <CRow>
                     <CCol xs={6}>
                       <div className="border-start border-start-4 border-start-info py-1 px-3">
-                        <div className="text-body-secondary text-truncate small">Reports Generated</div>
-                        <div className="fs-5 fw-semibold">2,845</div>
+                        <div className="text-body-secondary text-truncate small">Jobs</div>
+                        <div className="fs-5 fw-semibold">{stats.jobCount}</div>
                       </div>
                     </CCol>
                     <CCol xs={6}>
                       <div className="border-start border-start-4 border-start-danger py-1 px-3 mb-3">
                         <div className="text-body-secondary text-truncate small">
-                          AI Resume Analyses
+                          Candidates
                         </div>
-                        <div className="fs-5 fw-semibold">1,763</div>
+                        <div className="fs-5 fw-semibold">{stats.candidateCount}</div>
                       </div>
                     </CCol>
                   </CRow>
                   <hr className="mt-0" />
 
-                  <h6 className="mb-3">Top Locations</h6>
-                  {topLocations.map((item, index) => (
-                    <div className="progress-group" key={index}>
-                      <div className="progress-group-header">
-                        <CIcon className="me-2" icon={item.icon} size="lg" />
-                        <span>{item.title}</span>
-                        <span className="ms-auto fw-semibold">
-                          {item.value}{' '}
-                          <span className="text-body-secondary small">({item.percent}%)</span>
-                        </span>
+                  <h6 className="mb-3">Job locations</h6>
+                  {stats.jobTitleCount.length > 0 ? (
+                    stats.jobTitleCount.map((item, index) => (
+                      <div className="progress-group" key={index}>
+                        <div className="progress-group-header">
+                          <CIcon className="me-2" icon={cilLocationPin} size="lg" />
+                          <span>{item.title}</span>
+                          <span className="ms-auto fw-semibold">
+                            {item.count} <span className="text-body-secondary small">({item.percentage.toFixed(2)}%)</span>
+                          </span>
+                        </div>
+                        <div className="progress-group-bars">
+                          <CProgress thin color="info" value={item.percentage} />
+                        </div>
                       </div>
-                      <div className="progress-group-bars">
-                        <CProgress thin color="info" value={item.percent} />
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-center text-body-secondary">No data yet</p>
+                  )}
 
                   <div className="mb-5"></div>
 
-                  <h6 className="mb-3">Time-to-Hire by Department</h6>
-                  {timeToHire.map((item, index) => (
+                  <h6 className="mb-3">Interview statuses</h6>
+                  {interviewStatuses.map((item, index) => (
                     <div className="progress-group" key={index}>
                       <div className="progress-group-header">
                         <CIcon className="me-2" icon={item.icon} size="lg" />
@@ -170,22 +184,22 @@ const Dashboard = () => {
                   <CRow>
                     <CCol xs={6}>
                       <div className="border-start border-start-4 border-start-warning py-1 px-3 mb-3">
-                        <div className="text-body-secondary text-truncate small">Active Job Posts</div>
-                        <div className="fs-5 fw-semibold">43</div>
+                        <div className="text-body-secondary text-truncate small">Interviews</div>
+                        <div className="fs-5 fw-semibold">{stats.interviewCount}</div>
                       </div>
                     </CCol>
                     <CCol xs={6}>
                       <div className="border-start border-start-4 border-start-success py-1 px-3 mb-3">
-                        <div className="text-body-secondary text-truncate small">Total Employees</div>
-                        <div className="fs-5 fw-semibold">287</div>
+                        <div className="text-body-secondary text-truncate small">Employees</div>
+                        <div className="fs-5 fw-semibold">{stats.userCount}</div>
                       </div>
                     </CCol>
                   </CRow>
 
                   <hr className="mt-0" />
 
-                  <h6 className="mb-3">Top Job Positions</h6>
-                  {topJobPositions.map((item, index) => (
+                  <h6 className="mb-3">Job applicants</h6>
+                  {jobApplicants.map((item, index) => (
                     <div className="progress-group" key={index}>
                       <div className="progress-group-header">
                         <CIcon className="me-2" icon={item.icon} size="lg" />
@@ -203,26 +217,27 @@ const Dashboard = () => {
 
                   <div className="mb-5"></div>
 
-                  <h6 className="mb-3">Employee Retention by Tenure</h6>
-                  {employeeRetention.map((item, index) => (
-                    <div className="progress-group" key={index}>
-                      <div className="progress-group-header">
-                        <CIcon className="me-2" icon={item.icon} size="lg" />
-                        <span>{item.title}</span>
-                        <span className="ms-auto fw-semibold">
-                          {item.value}{' '}
-                          <span className="text-body-secondary small">({item.percent}%)</span>
-                        </span>
+                  <h6 className="mb-3">Interview types</h6>
+                  {stats.interviewTypeCount.length > 0 ? (
+                    stats.interviewTypeCount.map((item, index) => (
+                      <div className="progress-group" key={index}>
+                        <div className="progress-group-header">
+                          <CIcon className="me-2" icon={cilCalendar} size="lg" />
+                          <span>{item.interviewType}</span>
+                          <span className="ms-auto fw-semibold">
+                            {item.count} <span className="text-body-secondary small">({item.percentage.toFixed(2)}%)</span>
+                          </span>
+                        </div>
+                        <div className="progress-group-bars">
+                          <CProgress thin color="success" value={item.percentage} />
+                        </div>
                       </div>
-                      <div className="progress-group-bars">
-                        <CProgress thin color="success" value={item.percent} />
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-center text-body-secondary">No data yet</p>
+                  )}
                 </CCol>
               </CRow>
-
-              <br />
             </CCardBody>
           </CCard>
         </CCol>
