@@ -8,6 +8,7 @@ import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.InterviewCreateDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.InterviewStatusCountDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.InterviewTypeCountDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.error.ApiError;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.event.InterviewCreateEvent;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Interview;
@@ -21,27 +22,20 @@ import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 import static dev.zrdzn.hiresynapse.hiresynapsebackend.ai.AiPrompts.INTERVIEW_QUESTIONS_PROMPT;
-import static org.springframework.data.mongodb.core.aggregation.Aggregation.group;
-import static org.springframework.data.mongodb.core.aggregation.Aggregation.project;
 
 @Service
 @Validated
@@ -55,7 +49,6 @@ public class InterviewService {
     private final TaskService taskService;
     private final AiClient aiClient;
     private final ObjectMapper objectMapper;
-    private final MongoTemplate mongoTemplate;
 
     public InterviewService(
         InterviewRepository interviewRepository,
@@ -63,8 +56,7 @@ public class InterviewService {
         CandidateService candidateService,
         TaskService taskService,
         AiClient aiClient,
-        ObjectMapper objectMapper,
-        MongoTemplate mongoTemplate
+        ObjectMapper objectMapper
     ) {
         this.interviewRepository = interviewRepository;
         this.userService = userService;
@@ -72,22 +64,21 @@ public class InterviewService {
         this.taskService = taskService;
         this.aiClient = aiClient;
         this.objectMapper = objectMapper;
-        this.mongoTemplate = mongoTemplate;
     }
 
     public Interview initiateInterviewCreation(
-        String recruiterId,
+        long recruiterId,
         @Valid InterviewCreateDto interviewCreateDto
     ) {
         User recruiter = userService.getUser(recruiterId).orElseThrow();
         Candidate candidate = candidateService.getCandidate(interviewCreateDto.candidateId()).orElseThrow();
 
         if (interviewCreateDto.interviewStatus() == InterviewStatus.CANCELLED) {
-            throw new IllegalArgumentException("New interview cannot be created with cancelled status");
+            throw new ApiError(HttpStatus.BAD_REQUEST, "New interview cannot be created with cancelled status");
         }
 
         if (interviewCreateDto.interviewStatus() == InterviewStatus.COMPLETED) {
-            throw new IllegalArgumentException("New interview cannot be created with completed status");
+            throw new ApiError(HttpStatus.BAD_REQUEST, "New interview cannot be created with completed status");
         }
 
         Interview interview = new Interview(
@@ -123,7 +114,7 @@ public class InterviewService {
             )
         );
 
-        logger.info("Started interview creation task for interview: {}", createdInterview.getId());
+        logger.debug("Started interview creation task for interview: {}", createdInterview.getId());
 
         return createdInterview;
     }
@@ -131,7 +122,7 @@ public class InterviewService {
     public CompletableFuture<Interview> processInterview(InterviewCreateEvent interviewCreateEvent) {
         return CompletableFuture
             .supplyAsync(() -> {
-                logger.info("Processing interview: {}", interviewCreateEvent.interviewReferenceId());
+                logger.debug("Processing interview: {}", interviewCreateEvent.interviewReferenceId());
 
                 Candidate candidate = candidateService.getCandidate(interviewCreateEvent.candidateId()).orElseThrow();
 
@@ -151,7 +142,7 @@ public class InterviewService {
             .thenCompose(aiClient::sendPrompt)
             .thenAccept(response -> {
                 if (!interviewCreateEvent.enableQuestions()) {
-                    logger.info("Questions are disabled, skipping...");
+                    logger.debug("Questions are disabled, skipping...");
                     return;
                 }
 
@@ -162,7 +153,7 @@ public class InterviewService {
                 try {
                     List<String> questions = objectMapper.readValue(response, new TypeReference<>() {});
 
-                    logger.info("Questions were successfully generated: {}", questions);
+                    logger.debug("Questions were successfully generated: {}", questions);
 
                     updateInterview(
                         interviewCreateEvent.interviewReferenceId(),
@@ -179,29 +170,33 @@ public class InterviewService {
 
                 updateInterviewTaskStatus(interviewCreateEvent.interviewReferenceId(), TaskStatus.FAILED);
 
-                throw new CompletionException(exception);
+                throw new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process interview");
             });
     }
 
     public void updateInterview(
-        String interviewId,
+        long interviewId,
         List<String> questions
     ) {
-        Query query = new Query(Criteria.where("_id").is(interviewId));
-        Update update = new Update()
-            .set("questions", questions);
+        Interview interview = interviewRepository.findById(interviewId)
+            .orElseThrow(() -> new IllegalArgumentException("Interview not found"));
 
-        mongoTemplate.updateFirst(query, update, Interview.class);
+        interview.setQuestions(questions);
 
-        logger.info("Updated interview: {}", interviewId);
+        interviewRepository.save(interview);
+
+        logger.debug("Updated interview: {}", interviewId);
     }
 
-    public void updateInterviewTaskStatus(String interviewId, TaskStatus status) {
-        Query query = new Query(Criteria.where("_id").is(interviewId));
-        Update update = new Update().set("taskStatus", status);
-        mongoTemplate.updateFirst(query, update, Interview.class);
+    public void updateInterviewTaskStatus(long interviewId, TaskStatus status) {
+        Interview interview = interviewRepository.findById(interviewId)
+            .orElseThrow(() -> new ApiError(HttpStatus.NOT_FOUND, "Interview not found"));
 
-        logger.info("Updated interview status: {} to {}", interviewId, status);
+        interview.setTaskStatus(status);
+
+        interviewRepository.save(interview);
+
+        logger.debug("Updated interview status: {} to {}", interviewId, status);
     }
 
     public List<Interview> getInterviews(Pageable pageable) {
@@ -224,7 +219,7 @@ public class InterviewService {
         ).getContent();
     }
 
-    public Optional<Interview> getInterview(String interviewId) {
+    public Optional<Interview> getInterview(long interviewId) {
         return interviewRepository.findById(interviewId);
     }
 
@@ -233,20 +228,9 @@ public class InterviewService {
     }
 
     public List<InterviewStatusCountDto> getInterviewStatusCount() {
-        Aggregation aggregation = Aggregation.newAggregation(
-            group("status")
-                .count()
-                .as("count"),
-            project()
-                .andExpression("_id").as("status")
-                .andExpression("count").as("count")
-        );
+        List<InterviewStatusCountDto> interviewStatusCounts = interviewRepository.findInterviewStatusCounts();
 
-        List<InterviewStatusCountDto> interviewStatusCounts = mongoTemplate
-            .aggregate(aggregation, Interview.class, InterviewStatusCountDto.class)
-            .getMappedResults();
-
-        List<InterviewStatusCountDto> filteredResults = new ArrayList<>();
+        List<InterviewStatusCountDto> filteredResults = new LinkedList<>();
         long totalInterviews = 0;
 
         // include only non-empty interview statuses
@@ -269,20 +253,9 @@ public class InterviewService {
     }
 
     public List<InterviewTypeCountDto> getInterviewTypeCount() {
-        Aggregation aggregation = Aggregation.newAggregation(
-            group("interviewType")
-                .count()
-                .as("count"),
-            project()
-                .andExpression("_id").as("interviewType")
-                .andExpression("count").as("count")
-        );
+        List<InterviewTypeCountDto> interviewTypeCounts = interviewRepository.findInterviewTypeCounts();
 
-        List<InterviewTypeCountDto> interviewTypeCounts = mongoTemplate
-            .aggregate(aggregation, Interview.class, InterviewTypeCountDto.class)
-            .getMappedResults();
-
-        List<InterviewTypeCountDto> filteredResults = new ArrayList<>();
+        List<InterviewTypeCountDto> filteredResults = new LinkedList<>();
         long totalInterviews = 0;
 
         // include only non-empty interview types
@@ -308,10 +281,7 @@ public class InterviewService {
         LocalDate sixMonthsAgo = LocalDate.now().minusMonths(6);
         Instant startDate = sixMonthsAgo.atStartOfDay(ZoneId.systemDefault()).toInstant();
 
-        Query query = new Query();
-        query.addCriteria(Criteria.where("createdAt").gte(startDate));
-
-        List<Interview> interviews = mongoTemplate.find(query, Interview.class);
+        List<Interview> interviews = interviewRepository.findInterviewsCreatedAfter(startDate);
 
         Map<String, Integer> monthlyData = StatHelper.countByMonth(interviews);
         double growthRate = StatHelper.calculateGrowthRate(monthlyData);
@@ -321,6 +291,11 @@ public class InterviewService {
             growthRate,
             monthlyData
         );
+    }
+
+    public void deleteInterview(long interviewId) {
+        interviewRepository.deleteById(interviewId);
+        logger.debug("Interview with id {} deleted", interviewId);
     }
 
 }

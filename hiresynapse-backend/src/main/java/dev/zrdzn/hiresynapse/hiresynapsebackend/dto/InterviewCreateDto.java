@@ -9,7 +9,7 @@ import java.time.Instant;
 
 public record InterviewCreateDto(
     @NotBlank(message = "Candidate id is required")
-    String candidateId,
+    long candidateId,
     Instant interviewAt,
     InterviewType interviewType,
     InterviewStatus interviewStatus,

@@ -1,13 +1,15 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.error.ApiError;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.User;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserRole;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.UserRepository;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatHelper;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -20,17 +22,16 @@ import java.util.Optional;
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final MongoTemplate mongoTemplate;
+    private final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    public UserService(UserRepository userRepository, MongoTemplate mongoTemplate) {
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.mongoTemplate = mongoTemplate;
     }
 
-    public User createUser(String id, String username, String email, String firstName, String lastName, UserRole role, String pictureUrl) {
+    public User createUser(String username, String email, String firstName, String lastName, UserRole role, String pictureUrl) {
         User user = User.builder()
-            .id(id)
             .username(username)
             .email(email)
             .firstName(firstName)
@@ -39,10 +40,19 @@ public class UserService {
             .pictureUrl(pictureUrl)
             .build();
 
-        return userRepository.save(user);
+        try {
+            return userRepository.save(user);
+        } catch (Exception exception) {
+            logger.error("Failed to save user entity", exception);
+            throw new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save user entity");
+        }
     }
 
-    public Optional<User> getUser(String id) {
+    public List<User> getUsers(Pageable pageable) {
+        return userRepository.findAll(pageable).getContent();
+    }
+
+    public Optional<User> getUser(long id) {
         return userRepository.findById(id);
     }
 
@@ -58,10 +68,7 @@ public class UserService {
         LocalDate sixMonthsAgo = LocalDate.now().minusMonths(6);
         Instant startDate = sixMonthsAgo.atStartOfDay(ZoneId.systemDefault()).toInstant();
 
-        Query query = new Query();
-        query.addCriteria(Criteria.where("createdAt").gte(startDate));
-
-        List<User> users = mongoTemplate.find(query, User.class);
+        List<User> users = userRepository.findUsersCreatedAfter(startDate);
 
         Map<String, Integer> monthlyData = StatHelper.countByMonth(users);
         double growthRate = StatHelper.calculateGrowthRate(monthlyData);
@@ -71,6 +78,15 @@ public class UserService {
             growthRate,
             monthlyData
         );
+    }
+
+    public void deleteUser(long requesterId, long id) {
+        if (requesterId == id) {
+            throw new ApiError(HttpStatus.FORBIDDEN, "You cannot delete your own account");
+        }
+
+        userRepository.deleteById(id);
+        logger.debug("User with id {} deleted", id);
     }
 
 }

@@ -28,7 +28,7 @@ public class GptAiClient implements AiClient {
             .topP(1.0D)
             .build();
 
-        logger.info("Sending prompt to OpenAI: {}", prompt);
+        logger.debug("Sending prompt to OpenAI: {}", prompt);
 
         return openAi.chatCompletions()
             .create(request)

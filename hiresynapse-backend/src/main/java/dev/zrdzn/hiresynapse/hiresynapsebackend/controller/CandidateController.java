@@ -50,7 +50,7 @@ public class CandidateController {
     }
 
     @GetMapping("/{candidateId}")
-    public ResponseEntity<Candidate> getCandidate(@PathVariable String candidateId) {
+    public ResponseEntity<Candidate> getCandidate(@PathVariable long candidateId) {
         Optional<Candidate> candidate = candidateService.getCandidate(candidateId);
 
         return candidate.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());

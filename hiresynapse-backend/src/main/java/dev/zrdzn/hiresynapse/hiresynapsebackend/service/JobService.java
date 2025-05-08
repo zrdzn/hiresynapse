@@ -1,7 +1,7 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.error.ApiError;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.JobStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
@@ -11,10 +11,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -25,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 @Service
 @Validated
@@ -35,12 +31,13 @@ public class JobService {
 
     private final JobRepository jobRepository;
     private final TaskService taskService;
-    private final MongoTemplate mongoTemplate;
 
-    public JobService(JobRepository jobRepository, TaskService taskService, MongoTemplate mongoTemplate) {
+    public JobService(
+        JobRepository jobRepository,
+        TaskService taskService
+    ) {
         this.jobRepository = jobRepository;
         this.taskService = taskService;
-        this.mongoTemplate = mongoTemplate;
     }
 
     public Job initiateJobCreation(@Valid Job job) {
@@ -53,44 +50,50 @@ public class JobService {
             createdJob
         );
 
-        logger.info("Started job creation task for job: {}", createdJob.getId());
+        logger.debug("Started job creation task for job: {}", createdJob.getId());
 
         return createdJob;
     }
 
     public CompletableFuture<Job> processJob(Job job) {
         return CompletableFuture.supplyAsync(() -> {
-            logger.info("Processing job: {}", job.getId());
+            logger.debug("Processing job: {}", job.getId());
 
             updateJobTaskStatus(job.getId(), TaskStatus.COMPLETED);
 
             return job;
-        }).exceptionally(e -> {
-            logger.error("Error processing job", e);
+        }).exceptionally(exception -> {
+            logger.error("Error processing job", exception);
 
             updateJobTaskStatus(job.getId(), TaskStatus.FAILED);
 
-            throw new CompletionException(e);
+            throw new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process job");
         });
     }
 
-    public void updateJobStatus(String jobId, JobStatus status) {
-        Query query = new Query(Criteria.where("_id").is(jobId));
-        Update update = new Update().set("status", status);
-        mongoTemplate.updateFirst(query, update, Job.class);
+    public void updateJobStatus(long jobId, JobStatus status) {
+        Job job = jobRepository.findById(jobId)
+            .orElseThrow(() -> new ApiError(HttpStatus.NOT_FOUND, "Job not found"));
 
-        logger.info("Updated job status for job: {} to {}", jobId, status);
+        job.setStatus(status);
+
+        jobRepository.save(job);
+
+        logger.debug("Updated job status for job: {} to {}", jobId, status);
     }
 
-    public void updateJobTaskStatus(String jobId, TaskStatus status) {
-        Query query = new Query(Criteria.where("_id").is(jobId));
-        Update update = new Update().set("taskStatus", status);
-        mongoTemplate.updateFirst(query, update, Job.class);
+    public void updateJobTaskStatus(long jobId, TaskStatus status) {
+        Job job = jobRepository.findById(jobId)
+            .orElseThrow(() -> new ApiError(HttpStatus.NOT_FOUND, "Job not found"));
 
-        logger.info("Updated job task status for job: {} to {}", jobId, status);
+        job.setTaskStatus(status);
+
+        jobRepository.save(job);
+
+        logger.debug("Updated job task status for job: {} to {}", jobId, status);
     }
 
-    public List<Job> getJobs(String requesterId, Pageable pageable) {
+    public List<Job> getJobs(Pageable pageable) {
         return jobRepository.findAllByTaskStatus(TaskStatus.COMPLETED, pageable).getContent();
     }
 
@@ -98,7 +101,7 @@ public class JobService {
         return jobRepository.findByStatusAndTaskStatus(JobStatus.PUBLISHED, TaskStatus.COMPLETED, pageable).getContent();
     }
 
-    public Optional<Job> getJob(String jobId) {
+    public Optional<Job> getJob(long jobId) {
         return jobRepository.findById(jobId);
     }
 
@@ -110,10 +113,7 @@ public class JobService {
         LocalDate sixMonthsAgo = LocalDate.now().minusMonths(6);
         Instant startDate = sixMonthsAgo.atStartOfDay(ZoneId.systemDefault()).toInstant();
 
-        Query query = new Query();
-        query.addCriteria(Criteria.where("createdAt").gte(startDate));
-
-        List<Job> jobs = mongoTemplate.find(query, Job.class);
+        List<Job> jobs = jobRepository.findJobsCreatedAfter(startDate);
 
         Map<String, Integer> monthlyData = StatHelper.countByMonth(jobs);
         double growthRate = StatHelper.calculateGrowthRate(monthlyData);
@@ -125,12 +125,9 @@ public class JobService {
         );
     }
 
-    public void deleteJob(String jobId) {
-        Query candidateQuery = new Query(Criteria.where("job.$id").is(jobId));
-        mongoTemplate.remove(candidateQuery, Candidate.class);
-
+    public void deleteJob(long jobId) {
         jobRepository.deleteById(jobId);
-        logger.info("Deleted job: {}", jobId);
+        logger.debug("Deleted job: {}", jobId);
     }
 
 }

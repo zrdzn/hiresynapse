@@ -1,33 +1,42 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
 
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatPoint;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.hibernate.annotations.Type;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "jobs")
-public class Job implements StatPoint, Serializable {
+@Entity
+@Table(name = "jobs")
+public class Job implements StatPoint {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @CreatedDate
+    @Column(updatable = false)
     private Instant createdAt;
 
-    @LastModifiedDate
+    @Column
     private Instant updatedAt;
 
     @NotBlank(message = "Title is required")
@@ -45,12 +54,28 @@ public class Job implements StatPoint, Serializable {
 
     private String requiredExperience;
 
+    @Enumerated(EnumType.STRING)
     private JobStatus status;
 
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb")
     private List<String> requirements;
 
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb")
     private List<String> benefits;
 
+    @Enumerated(EnumType.STRING)
     private TaskStatus taskStatus;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = Instant.now();
+    }
 
 }

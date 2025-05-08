@@ -1,17 +1,24 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
 
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatPoint;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.hibernate.annotations.Type;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -19,22 +26,25 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "candidates")
-public class Candidate implements StatPoint, Serializable {
+@Entity
+@Table(name = "candidates")
+public class Candidate implements StatPoint {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @CreatedDate
+    @Column(updatable = false)
     private Instant createdAt;
 
-    @LastModifiedDate
+    @Column
     private Instant updatedAt;
 
-    @DBRef
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "job_id", nullable = false)
     private Job job;
 
-    @NotBlank(message = "Email is required")
+    @Column(nullable = false)
     private String email;
 
     private CandidateStatus status;
@@ -49,15 +59,55 @@ public class Candidate implements StatPoint, Serializable {
     private String careerTrajectory;
     private Integer yearsOfRelatedExperience;
     private Integer yearsOfExperience;
+
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb")
     private Map<String, String> relatedExperience;
+
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb")
     private Map<String, String> experience;
+
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb")
     private Map<String, String> education;
+
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb")
     private Map<String, String> skills;
+
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb")
     private Map<String, String> projects;
+
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb")
     private List<String> languages;
+
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb")
     private List<String> certificates;
-    private List<String> references;
+
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb")
+    private List<String> employerReferences;
+
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb")
     private List<String> keyAchievements;
+
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb")
     private List<String> keySoftSkills;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = Instant.now();
+    }
 
 }

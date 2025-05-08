@@ -2,12 +2,10 @@ package dev.zrdzn.hiresynapse.hiresynapsebackend.controller;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.JobStatus;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserPrincipal;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.JobService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -37,10 +35,9 @@ public class JobController {
 
     @GetMapping
     public List<Job> getJobs(
-        @AuthenticationPrincipal UserPrincipal principal,
         @PageableDefault(size = 50) Pageable pageable
     ) {
-        return jobService.getJobs(principal.getUser().getId(), pageable);
+        return jobService.getJobs(pageable);
     }
 
     @GetMapping("/published")
@@ -52,7 +49,7 @@ public class JobController {
 
     @GetMapping("/{jobId}")
     public ResponseEntity<Job> getJob(
-        @PathVariable String jobId
+        @PathVariable long jobId
     ) {
         Optional<Job> job = jobService.getJob(jobId);
 
@@ -60,19 +57,18 @@ public class JobController {
     }
 
     @PatchMapping("/{jobId}/publish")
-    public void updateJobStatus(@PathVariable String jobId) {
+    public void updateJobStatus(@PathVariable long jobId) {
         jobService.updateJobStatus(jobId, JobStatus.PUBLISHED);
     }
 
     @PatchMapping("/{jobId}/unpublish")
     public void unpublishJob(
-        @PathVariable String jobId) {
+        @PathVariable long jobId) {
         jobService.updateJobStatus(jobId, JobStatus.UNPUBLISHED);
     }
 
     @DeleteMapping("/{jobId}")
-    public void deleteJob(
-        @PathVariable String jobId) {
+    public void deleteJob(@PathVariable long jobId) {
         jobService.deleteJob(jobId);
     }
 

@@ -27,13 +27,13 @@ public class TaskService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public <T> void sendEvent(String entityId, T entity) {
+    public <T> void sendEvent(long entityId, T entity) {
         String topic = topicMappings.get(entity.getClass());
         if (topic == null) {
             throw new IllegalArgumentException("No topic mapping for: " + entity.getClass().getName());
         }
 
-        kafkaTemplate.send(topic, entityId, entity);
+        kafkaTemplate.send(topic, String.valueOf(entityId), entity);
     }
 
 }

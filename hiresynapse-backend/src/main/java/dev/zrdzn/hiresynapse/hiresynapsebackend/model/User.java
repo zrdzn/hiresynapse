@@ -1,48 +1,71 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatPoint;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.mongodb.core.mapping.Document;
+import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Data
-@Document(collection = "users")
-public class User implements StatPoint, Serializable {
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "users")
+public class User implements StatPoint {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @CreatedDate
+    @Column(updatable = false)
     private Instant createdAt;
 
-    @LastModifiedDate
+    @Column
     private Instant updatedAt;
 
     @NotBlank(message = "Username is required")
+    @Column(nullable = false, unique = true)
     private String username;
 
     @Email(message = "Email should be valid")
+    @Column(nullable = false, unique = true)
     private String email;
 
     @NotBlank(message = "First name is required")
+    @Column(nullable = false)
     private String firstName;
 
     @NotBlank(message = "Last name is required")
+    @Column(nullable = false)
     private String lastName;
 
-    @NotBlank(message = "Role is required")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private UserRole role;
 
     private String pictureUrl;
 
-    private User() {
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = Instant.now();
     }
 
     public static Builder builder() {
@@ -57,7 +80,7 @@ public class User implements StatPoint, Serializable {
             this.user = new User();
         }
 
-        public Builder id(String id) {
+        public Builder id(Long id) {
             this.user.id = id;
             return this;
         }

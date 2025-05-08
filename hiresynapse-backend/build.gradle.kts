@@ -19,13 +19,15 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("org.influxdb:influxdb-java:2.25")
+    implementation("org.postgresql:postgresql")
+    implementation("com.vladmihalcea:hibernate-types-60:2.21.1")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("org.projectlombok:lombok:1.18.38")
     implementation("io.github.sashirestela:simple-openai:3.19.4") {
         exclude(group = "ch.qos.logback", module = "logback-classic")

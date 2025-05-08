@@ -34,7 +34,7 @@ public class TaskListener {
     public void consumeCandidateEvent(CandidateCreateEvent candidateCreateEvent) {
         candidateService.processCandidate(candidateCreateEvent)
             .thenAccept(result -> {
-                logger.info("Candidate processed: {}", result);
+                logger.debug("Candidate processed: {}", result);
             })
             .exceptionally(exception -> {
                 logger.error("Error processing candidate", exception);
@@ -46,7 +46,7 @@ public class TaskListener {
     public void consumeJobEvent(Job job) {
         jobService.processJob(job)
             .thenAccept(result -> {
-                logger.info("Job processed: {}", result);
+                logger.debug("Job processed: {}", result);
             })
             .exceptionally(exception -> {
                 logger.error("Error processing job", exception);
@@ -58,7 +58,7 @@ public class TaskListener {
     public void consumeInterviewEvent(InterviewCreateEvent interviewCreateEvent) {
         interviewService.processInterview(interviewCreateEvent)
             .thenAccept(result -> {
-                logger.info("Interview processed: {}", result);
+                logger.debug("Interview processed: {}", result);
             })
             .exceptionally(exception -> {
                 logger.error("Error processing interview", exception);

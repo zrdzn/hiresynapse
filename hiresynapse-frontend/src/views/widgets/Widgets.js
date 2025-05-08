@@ -227,7 +227,7 @@ const Widgets = ({ stats, className }) => {
               </span>
             </>
           }
-          title="Employees joined (Last 6 months)"
+          title="Staff joined (Last 6 months)"
           chart={
             <CChartLine
               className="mt-3"
@@ -236,7 +236,7 @@ const Widgets = ({ stats, className }) => {
                 labels: usersLabels,
                 datasets: [
                   {
-                    label: 'Users',
+                    label: 'Staff',
                     backgroundColor: 'rgba(255,255,255,.2)',
                     borderColor: 'rgba(255,255,255,.55)',
                     data: usersMonthlyData,

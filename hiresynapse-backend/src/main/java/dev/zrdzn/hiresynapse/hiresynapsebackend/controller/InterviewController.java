@@ -58,7 +58,7 @@ public class InterviewController {
     }
 
     @GetMapping("/{interviewId}")
-    public ResponseEntity<Interview> getInterview(@PathVariable String interviewId) {
+    public ResponseEntity<Interview> getInterview(@PathVariable long interviewId) {
         Optional<Interview> interview = interviewService.getInterview(interviewId);
 
         return interview.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());

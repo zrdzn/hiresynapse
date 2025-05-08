@@ -180,7 +180,7 @@ const Dashboard = () => {
                     </CCol>
                     <CCol xs={6}>
                       <div className="border-start border-start-4 border-start-success py-1 px-3 mb-3">
-                        <div className="text-body-secondary text-truncate small">Employees</div>
+                        <div className="text-body-secondary text-truncate small">Staff</div>
                         <div className="fs-5 fw-semibold">{stats.userCount}</div>
                       </div>
                     </CCol>
