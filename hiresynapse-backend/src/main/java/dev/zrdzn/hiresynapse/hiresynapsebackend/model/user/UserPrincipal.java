@@ -1,4 +1,4 @@
-package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
+package dev.zrdzn.hiresynapse.hiresynapsebackend.model.user;
 
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

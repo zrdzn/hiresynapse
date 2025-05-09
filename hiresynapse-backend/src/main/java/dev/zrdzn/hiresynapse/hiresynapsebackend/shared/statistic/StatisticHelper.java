@@ -1,4 +1,4 @@
-package dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat;
+package dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -8,11 +8,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class StatHelper {
+public class StatisticHelper {
 
     private static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMM");
 
-    public static <T extends StatPoint> Map<String, Integer> countByMonth(List<T> list) {
+    public static <T extends StatisticPoint> Map<String, Integer> countByMonth(List<T> list) {
         Map<String, Integer> months = fillLastSixMonths();
 
         // count the number of items in each month

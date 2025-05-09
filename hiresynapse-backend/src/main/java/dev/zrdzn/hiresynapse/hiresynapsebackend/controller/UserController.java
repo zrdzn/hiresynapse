@@ -1,7 +1,7 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.controller;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.User;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserPrincipal;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.User;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.UserPrincipal;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.UserService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;

@@ -5,17 +5,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.ai.AiClient;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.AnalysedResumeDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.CandidateCreateDto;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.JobTitleCountDto;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.UtmSourceCountDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.statistic.JobTitleCountDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.statistic.MonthlyDataDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.statistic.UtmSourceCountDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.error.ApiError;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.event.CandidateCreateEvent;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.CandidateStatus;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.candidate.Candidate;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.candidate.CandidateStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.Job;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.LogAction;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.LogEntityType;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.CandidateRepository;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatHelper;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticHelper;
 import jakarta.validation.Valid;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
@@ -60,6 +62,7 @@ public class CandidateService {
     private final AiClient aiClient;
     private final DocumentExtractorService documentExtractorService;
     private final ObjectMapper objectMapper;
+    private final LogService logService;
 
     public CandidateService(
         CandidateRepository candidateRepository,
@@ -67,7 +70,8 @@ public class CandidateService {
         TaskService taskService,
         AiClient aiClient,
         DocumentExtractorService documentExtractorService,
-        ObjectMapper objectMapper
+        ObjectMapper objectMapper,
+        LogService logService
     ) {
         this.candidateRepository = candidateRepository;
         this.jobService = jobService;
@@ -75,6 +79,7 @@ public class CandidateService {
         this.aiClient = aiClient;
         this.documentExtractorService = documentExtractorService;
         this.objectMapper = objectMapper;
+        this.logService = logService;
     }
 
     public Candidate initiateCandidateCreation(
@@ -114,6 +119,14 @@ public class CandidateService {
         );
 
         Candidate createdCandidate = candidateRepository.save(candidate);
+
+        logService.createLog(
+            null,
+            "New candidate has applied for job",
+            LogAction.CREATE,
+            LogEntityType.CANDIDATE,
+            createdCandidate.getId()
+        );
 
         Path path;
         try {
@@ -269,6 +282,14 @@ public class CandidateService {
 
         candidateRepository.save(candidate);
 
+        logService.createLog(
+            null,
+            "Candidate has been updated",
+            LogAction.UPDATE,
+            LogEntityType.CANDIDATE,
+            candidate.getId()
+        );
+
         logger.debug("Updated candidate: {}", candidateId);
     }
 
@@ -279,6 +300,14 @@ public class CandidateService {
         candidate.setTaskStatus(status);
 
         candidateRepository.save(candidate);
+
+        logService.createLog(
+            null,
+            "Candidate task status updated to " + status,
+            LogAction.UPDATE,
+            LogEntityType.CANDIDATE,
+            candidate.getId()
+        );
 
         logger.debug("Updated candidate status: {} to {}", candidateId, status);
     }
@@ -354,8 +383,24 @@ public class CandidateService {
 
         List<Candidate> candidates = candidateRepository.findCandidatesCreatedAfter(startDate);
 
-        Map<String, Integer> monthlyData = StatHelper.countByMonth(candidates);
-        double growthRate = StatHelper.calculateGrowthRate(monthlyData);
+        Map<String, Integer> monthlyData = StatisticHelper.countByMonth(candidates);
+        double growthRate = StatisticHelper.calculateGrowthRate(monthlyData);
+
+        return new MonthlyDataDto(
+            candidates.size(),
+            growthRate,
+            monthlyData
+        );
+    }
+
+    public MonthlyDataDto getCandidatesFromLastSixMonths(CandidateStatus status) {
+        LocalDate sixMonthsAgo = LocalDate.now().minusMonths(6);
+        Instant startDate = sixMonthsAgo.atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        List<Candidate> candidates = candidateRepository.findCandidatesCreatedAfter(startDate, status);
+
+        Map<String, Integer> monthlyData = StatisticHelper.countByMonth(candidates);
+        double growthRate = StatisticHelper.calculateGrowthRate(monthlyData);
 
         return new MonthlyDataDto(
             candidates.size(),
@@ -391,11 +436,6 @@ public class CandidateService {
             });
 
         return yearsWorked.size();
-    }
-
-    public void deleteCandidatesByJobId(long jobId) {
-        candidateRepository.deleteByJobId(jobId);
-        logger.debug("Deleted candidates for job: {}", jobId);
     }
 
 }

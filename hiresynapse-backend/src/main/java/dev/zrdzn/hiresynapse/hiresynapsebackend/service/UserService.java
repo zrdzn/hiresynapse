@@ -1,11 +1,11 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.statistic.MonthlyDataDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.error.ApiError;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.User;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserRole;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.User;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.UserRole;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.UserRepository;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatHelper;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -41,7 +41,11 @@ public class UserService {
             .build();
 
         try {
-            return userRepository.save(user);
+            User createdUser = userRepository.save(user);
+
+            logger.debug("Created user: {}", createdUser.getId());
+
+            return createdUser;
         } catch (Exception exception) {
             logger.error("Failed to save user entity", exception);
             throw new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save user entity");
@@ -70,8 +74,8 @@ public class UserService {
 
         List<User> users = userRepository.findUsersCreatedAfter(startDate);
 
-        Map<String, Integer> monthlyData = StatHelper.countByMonth(users);
-        double growthRate = StatHelper.calculateGrowthRate(monthlyData);
+        Map<String, Integer> monthlyData = StatisticHelper.countByMonth(users);
+        double growthRate = StatisticHelper.calculateGrowthRate(monthlyData);
 
         return new MonthlyDataDto(
             users.size(),
@@ -80,13 +84,14 @@ public class UserService {
         );
     }
 
-    public void deleteUser(long requesterId, long id) {
-        if (requesterId == id) {
+    public void deleteUser(long requesterId, long userId) {
+        if (requesterId == userId) {
             throw new ApiError(HttpStatus.FORBIDDEN, "You cannot delete your own account");
         }
 
-        userRepository.deleteById(id);
-        logger.debug("User with id {} deleted", id);
+        userRepository.deleteById(userId);
+
+        logger.debug("User with id {} deleted", userId);
     }
 
 }

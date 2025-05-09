@@ -1,8 +1,8 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.repository;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.JobStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.Job;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.JobStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

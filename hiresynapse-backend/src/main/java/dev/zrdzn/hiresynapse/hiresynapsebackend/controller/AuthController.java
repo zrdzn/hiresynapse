@@ -1,7 +1,7 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.controller;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.User;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserPrincipal;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.User;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.UserPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;

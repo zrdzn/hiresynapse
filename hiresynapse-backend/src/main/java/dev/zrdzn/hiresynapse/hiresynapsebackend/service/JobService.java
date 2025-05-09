@@ -1,12 +1,14 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.statistic.MonthlyDataDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.error.ApiError;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.JobStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.Job;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.JobStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.LogAction;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.LogEntityType;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.JobRepository;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatHelper;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticHelper;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,19 +33,30 @@ public class JobService {
 
     private final JobRepository jobRepository;
     private final TaskService taskService;
+    private final LogService logService;
 
     public JobService(
         JobRepository jobRepository,
-        TaskService taskService
+        TaskService taskService,
+        LogService logService
     ) {
         this.jobRepository = jobRepository;
         this.taskService = taskService;
+        this.logService = logService;
     }
 
-    public Job initiateJobCreation(@Valid Job job) {
+    public Job initiateJobCreation(long requesterId, @Valid Job job) {
         job.setTaskStatus(TaskStatus.PENDING);
 
         Job createdJob = jobRepository.save(job);
+
+        logService.createLog(
+            requesterId,
+            "New job '" + createdJob.getTitle() + "' has been created",
+            LogAction.CREATE,
+            LogEntityType.JOB,
+            createdJob.getId()
+        );
 
         taskService.sendEvent(
             createdJob.getId(),
@@ -71,13 +84,21 @@ public class JobService {
         });
     }
 
-    public void updateJobStatus(long jobId, JobStatus status) {
+    public void updateJobStatus(long requesterId, long jobId, JobStatus status) {
         Job job = jobRepository.findById(jobId)
             .orElseThrow(() -> new ApiError(HttpStatus.NOT_FOUND, "Job not found"));
 
         job.setStatus(status);
 
         jobRepository.save(job);
+
+        logService.createLog(
+            requesterId,
+            "Job status updated to " + status,
+            LogAction.UPDATE,
+            LogEntityType.JOB,
+            job.getId()
+        );
 
         logger.debug("Updated job status for job: {} to {}", jobId, status);
     }
@@ -89,6 +110,14 @@ public class JobService {
         job.setTaskStatus(status);
 
         jobRepository.save(job);
+
+        logService.createLog(
+            null,
+            "Job task status updated to " + status,
+            LogAction.UPDATE,
+            LogEntityType.JOB,
+            job.getId()
+        );
 
         logger.debug("Updated job task status for job: {} to {}", jobId, status);
     }
@@ -115,8 +144,8 @@ public class JobService {
 
         List<Job> jobs = jobRepository.findJobsCreatedAfter(startDate);
 
-        Map<String, Integer> monthlyData = StatHelper.countByMonth(jobs);
-        double growthRate = StatHelper.calculateGrowthRate(monthlyData);
+        Map<String, Integer> monthlyData = StatisticHelper.countByMonth(jobs);
+        double growthRate = StatisticHelper.calculateGrowthRate(monthlyData);
 
         return new MonthlyDataDto(
             jobs.size(),
@@ -125,8 +154,17 @@ public class JobService {
         );
     }
 
-    public void deleteJob(long jobId) {
+    public void deleteJob(long requesterId, long jobId) {
         jobRepository.deleteById(jobId);
+
+        logService.createLog(
+            requesterId,
+            "Job has been deleted",
+            LogAction.DELETE,
+            LogEntityType.JOB,
+            jobId
+        );
+
         logger.debug("Deleted job: {}", jobId);
     }
 

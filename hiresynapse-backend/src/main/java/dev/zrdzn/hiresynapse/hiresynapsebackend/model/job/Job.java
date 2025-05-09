@@ -1,7 +1,8 @@
-package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
+package dev.zrdzn.hiresynapse.hiresynapsebackend.model.job;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatPoint;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticPoint;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,7 +28,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "jobs")
-public class Job implements StatPoint {
+public class Job implements StatisticPoint {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

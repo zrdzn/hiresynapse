@@ -1,7 +1,9 @@
-package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
+package dev.zrdzn.hiresynapse.hiresynapsebackend.model.candidate;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatPoint;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.Job;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticPoint;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,7 +30,7 @@ import java.util.Map;
 @AllArgsConstructor
 @Entity
 @Table(name = "candidates")
-public class Candidate implements StatPoint {
+public class Candidate implements StatisticPoint {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

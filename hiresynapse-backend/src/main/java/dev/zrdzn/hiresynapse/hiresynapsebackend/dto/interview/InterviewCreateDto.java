@@ -1,7 +1,7 @@
-package dev.zrdzn.hiresynapse.hiresynapsebackend.dto;
+package dev.zrdzn.hiresynapse.hiresynapsebackend.dto.interview;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.InterviewStatus;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.InterviewType;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.interview.InterviewStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.interview.InterviewType;
 import jakarta.validation.constraints.NotBlank;
 
 import java.io.Serializable;

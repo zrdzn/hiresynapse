@@ -1,8 +1,8 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.controller;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.InterviewCreateDto;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Interview;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserPrincipal;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.interview.InterviewCreateDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.interview.Interview;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.UserPrincipal;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.InterviewService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;

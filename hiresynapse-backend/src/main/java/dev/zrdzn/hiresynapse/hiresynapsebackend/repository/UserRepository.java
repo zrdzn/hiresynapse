@@ -1,6 +1,6 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.repository;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.User;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

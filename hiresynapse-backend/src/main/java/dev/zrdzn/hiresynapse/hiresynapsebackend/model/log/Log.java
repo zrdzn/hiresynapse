@@ -1,7 +1,7 @@
-package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
+package dev.zrdzn.hiresynapse.hiresynapsebackend.model.log;
 
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatPoint;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.User;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticPoint;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,21 +16,20 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
 
 import java.time.Instant;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "interviews")
-public class Interview implements StatPoint {
+@Table(name = "logs")
+public class Log implements StatisticPoint {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,44 +42,23 @@ public class Interview implements StatPoint {
     private Instant updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "recruiter_id", nullable = false)
-    private User recruiter;
+    @JoinColumn(name = "performer_id")
+    private User performer;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "candidate_id", nullable = false)
-    private Candidate candidate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private InterviewStatus status;
+    @NotBlank(message = "Description is required")
+    @Size(min = 3, max = 1000, message = "Description must be between 3 and 1000 characters")
+    private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TaskStatus taskStatus;
-
-    @NotNull
-    private Instant interviewAt;
-
-    private Instant completedAt;
-    private Instant cancelledAt;
-    private Instant confirmedAt;
+    private LogAction action;
 
     @Enumerated(EnumType.STRING)
-    private InterviewType interviewType;
+    @Column(nullable = false)
+    private LogEntityType entityType;
 
-    @Column(columnDefinition = "TEXT")
-    private String notes;
-
-    @Column(columnDefinition = "TEXT")
-    private String feedback;
-
-    private boolean enableQuestions;
-
-    private int questionsAmount;
-
-    @Type(JsonBinaryType.class)
-    @Column(columnDefinition = "jsonb")
-    private List<String> questions;
+    @Column
+    private long entityId;
 
     @PrePersist
     protected void onCreate() {

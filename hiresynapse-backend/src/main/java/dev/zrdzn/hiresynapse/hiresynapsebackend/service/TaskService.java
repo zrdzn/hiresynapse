@@ -2,7 +2,7 @@ package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.event.CandidateCreateEvent;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.event.InterviewCreateEvent;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.Job;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 

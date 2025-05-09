@@ -1,11 +1,13 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.controller;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.JobStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.Job;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.JobStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.UserPrincipal;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.JobService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,8 +31,11 @@ public class JobController {
     }
 
     @PostMapping
-    public Job createJob(@RequestBody Job job) {
-        return jobService.initiateJobCreation(job);
+    public Job createJob(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @RequestBody Job job
+    ) {
+        return jobService.initiateJobCreation(principal.getUser().getId(), job);
     }
 
     @GetMapping
@@ -57,19 +62,27 @@ public class JobController {
     }
 
     @PatchMapping("/{jobId}/publish")
-    public void updateJobStatus(@PathVariable long jobId) {
-        jobService.updateJobStatus(jobId, JobStatus.PUBLISHED);
+    public void updateJobStatus(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable long jobId
+    ) {
+        jobService.updateJobStatus(principal.getUser().getId(), jobId, JobStatus.PUBLISHED);
     }
 
     @PatchMapping("/{jobId}/unpublish")
     public void unpublishJob(
-        @PathVariable long jobId) {
-        jobService.updateJobStatus(jobId, JobStatus.UNPUBLISHED);
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable long jobId
+    ) {
+        jobService.updateJobStatus(principal.getUser().getId(), jobId, JobStatus.UNPUBLISHED);
     }
 
     @DeleteMapping("/{jobId}")
-    public void deleteJob(@PathVariable long jobId) {
-        jobService.deleteJob(jobId);
+    public void deleteJob(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable long jobId
+    ) {
+        jobService.deleteJob(principal.getUser().getId(), jobId);
     }
 
 }

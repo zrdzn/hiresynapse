@@ -1,4 +1,4 @@
-package dev.zrdzn.hiresynapse.hiresynapsebackend.dto;
+package dev.zrdzn.hiresynapse.hiresynapsebackend.dto.statistic;
 
 import java.util.Map;
 

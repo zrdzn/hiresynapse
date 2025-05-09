@@ -2,7 +2,7 @@ package dev.zrdzn.hiresynapse.hiresynapsebackend.listener;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.event.CandidateCreateEvent;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.event.InterviewCreateEvent;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Job;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.CandidateService;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.InterviewService;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.JobService;

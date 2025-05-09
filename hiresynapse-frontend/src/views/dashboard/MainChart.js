@@ -1,10 +1,17 @@
-import React, { useEffect, useRef } from 'react'
+import React, {useEffect, useRef} from 'react'
 
-import { CChartLine } from '@coreui/react-chartjs'
-import { getStyle } from '@coreui/utils'
+import {CChartLine} from '@coreui/react-chartjs'
+import {getStyle} from '@coreui/utils'
 
-const MainChart = () => {
+const MainChart = ({ stats }) => {
   const chartRef = useRef(null)
+
+  const acceptedCandidatesMonthlyData = Object.values(stats.acceptedCandidatesFromLastSixMonths.monthlyData)
+  const rejectedCandidatesMonthlyData = Object.values(stats.rejectedCandidatesFromLastSixMonths.monthlyData)
+  const pendingCandidatesMonthlyData = Object.values(stats.pendingCandidatesFromLastSixMonths.monthlyData)
+
+  const labels = Object.keys(stats.acceptedCandidatesFromLastSixMonths.monthlyData)
+
 
   useEffect(() => {
     document.documentElement.addEventListener('ColorSchemeChange', () => {
@@ -34,49 +41,32 @@ const MainChart = () => {
         ref={chartRef}
         style={{ height: '300px', marginTop: '40px' }}
         data={{
-          labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+          labels: labels,
           datasets: [
             {
-              label: 'My First dataset',
-              backgroundColor: `rgba(${getStyle('--cui-info-rgb')}, .1)`,
-              borderColor: getStyle('--cui-info'),
-              pointHoverBackgroundColor: getStyle('--cui-info'),
-              borderWidth: 2,
-              data: [
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-              ],
-              fill: true,
-            },
-            {
-              label: 'My Second dataset',
-              backgroundColor: 'transparent',
+              label: 'Accepted',
+              backgroundColor: `rgba(${getStyle('--cui-success-rgb')}, .1)`,
               borderColor: getStyle('--cui-success'),
               pointHoverBackgroundColor: getStyle('--cui-success'),
               borderWidth: 2,
-              data: [
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-              ],
+              data: acceptedCandidatesMonthlyData,
+              fill: true,
             },
             {
-              label: 'My Third dataset',
+              label: 'Rejected',
               backgroundColor: 'transparent',
               borderColor: getStyle('--cui-danger'),
               pointHoverBackgroundColor: getStyle('--cui-danger'),
-              borderWidth: 1,
-              borderDash: [8, 5],
-              data: [65, 65, 65, 65, 65, 65, 65],
+              borderWidth: 2,
+              data: rejectedCandidatesMonthlyData,
+            },
+            {
+              label: 'Active applications',
+              backgroundColor: 'transparent',
+              borderColor: getStyle('--cui-info'),
+              pointHoverBackgroundColor: getStyle('--cui-info'),
+              borderWidth: 2,
+              data: pendingCandidatesMonthlyData,
             },
           ],
         }}

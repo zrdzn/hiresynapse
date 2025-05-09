@@ -1,6 +1,6 @@
-package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
+package dev.zrdzn.hiresynapse.hiresynapsebackend.model.user;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatPoint;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticPoint;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -24,7 +24,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
-public class User implements StatPoint {
+public class User implements StatisticPoint {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -4,19 +4,21 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.ai.AiClient;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.InterviewCreateDto;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.InterviewStatusCountDto;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.InterviewTypeCountDto;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.MonthlyDataDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.interview.InterviewCreateDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.interview.InterviewStatusCountDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.interview.InterviewTypeCountDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.statistic.MonthlyDataDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.error.ApiError;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.event.InterviewCreateEvent;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Interview;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.InterviewStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.User;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.candidate.Candidate;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.interview.Interview;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.interview.InterviewStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.LogAction;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.LogEntityType;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.User;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.InterviewRepository;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.stat.StatHelper;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticHelper;
 import jakarta.validation.Valid;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
@@ -49,6 +51,7 @@ public class InterviewService {
     private final TaskService taskService;
     private final AiClient aiClient;
     private final ObjectMapper objectMapper;
+    private final LogService logService;
 
     public InterviewService(
         InterviewRepository interviewRepository,
@@ -56,7 +59,8 @@ public class InterviewService {
         CandidateService candidateService,
         TaskService taskService,
         AiClient aiClient,
-        ObjectMapper objectMapper
+        ObjectMapper objectMapper,
+        LogService logService
     ) {
         this.interviewRepository = interviewRepository;
         this.userService = userService;
@@ -64,6 +68,7 @@ public class InterviewService {
         this.taskService = taskService;
         this.aiClient = aiClient;
         this.objectMapper = objectMapper;
+        this.logService = logService;
     }
 
     public Interview initiateInterviewCreation(
@@ -103,9 +108,18 @@ public class InterviewService {
 
         Interview createdInterview = interviewRepository.save(interview);
 
+        logService.createLog(
+            recruiterId,
+            "Interview has been scheduled",
+            LogAction.CREATE,
+            LogEntityType.INTERVIEW,
+            createdInterview.getId()
+        );
+
         taskService.sendEvent(
             createdInterview.getId(),
             new InterviewCreateEvent(
+                recruiterId,
                 createdInterview.getId(),
                 candidate.getId(),
                 interviewCreateDto.interviewType(),
@@ -156,6 +170,7 @@ public class InterviewService {
                     logger.debug("Questions were successfully generated: {}", questions);
 
                     updateInterview(
+                        interviewCreateEvent.recruiterId(),
                         interviewCreateEvent.interviewReferenceId(),
                         questions
                     );
@@ -163,18 +178,28 @@ public class InterviewService {
                     throw new RuntimeException(exception);
                 }
             })
-            .thenRun(() -> updateInterviewTaskStatus(interviewCreateEvent.interviewReferenceId(), TaskStatus.COMPLETED))
+            .thenRun(() -> updateInterviewTaskStatus(
+                interviewCreateEvent.recruiterId(),
+                interviewCreateEvent.interviewReferenceId(),
+                TaskStatus.COMPLETED
+                )
+            )
             .thenApply(unused -> getInterview(interviewCreateEvent.interviewReferenceId()).orElseThrow())
             .exceptionally(exception -> {
                 logger.error("Error processing interview", exception);
 
-                updateInterviewTaskStatus(interviewCreateEvent.interviewReferenceId(), TaskStatus.FAILED);
+                updateInterviewTaskStatus(
+                    interviewCreateEvent.recruiterId(),
+                    interviewCreateEvent.interviewReferenceId(),
+                    TaskStatus.FAILED
+                );
 
                 throw new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process interview");
             });
     }
 
     public void updateInterview(
+        long requesterId,
         long interviewId,
         List<String> questions
     ) {
@@ -185,16 +210,36 @@ public class InterviewService {
 
         interviewRepository.save(interview);
 
+        logService.createLog(
+            requesterId,
+            "Interview questions have been updated",
+            LogAction.UPDATE,
+            LogEntityType.INTERVIEW,
+            interview.getId()
+        );
+
         logger.debug("Updated interview: {}", interviewId);
     }
 
-    public void updateInterviewTaskStatus(long interviewId, TaskStatus status) {
+    public void updateInterviewTaskStatus(
+        long requesterId,
+        long interviewId,
+        TaskStatus status
+    ) {
         Interview interview = interviewRepository.findById(interviewId)
             .orElseThrow(() -> new ApiError(HttpStatus.NOT_FOUND, "Interview not found"));
 
         interview.setTaskStatus(status);
 
         interviewRepository.save(interview);
+
+        logService.createLog(
+            requesterId,
+            "Interview task status updated to " + status,
+            LogAction.UPDATE,
+            LogEntityType.INTERVIEW,
+            interview.getId()
+        );
 
         logger.debug("Updated interview status: {} to {}", interviewId, status);
     }
@@ -283,8 +328,8 @@ public class InterviewService {
 
         List<Interview> interviews = interviewRepository.findInterviewsCreatedAfter(startDate);
 
-        Map<String, Integer> monthlyData = StatHelper.countByMonth(interviews);
-        double growthRate = StatHelper.calculateGrowthRate(monthlyData);
+        Map<String, Integer> monthlyData = StatisticHelper.countByMonth(interviews);
+        double growthRate = StatisticHelper.calculateGrowthRate(monthlyData);
 
         return new MonthlyDataDto(
             interviews.size(),
@@ -293,8 +338,33 @@ public class InterviewService {
         );
     }
 
-    public void deleteInterview(long interviewId) {
+    public MonthlyDataDto getInterviewsFromLastSixMonths(InterviewStatus status) {
+        LocalDate sixMonthsAgo = LocalDate.now().minusMonths(6);
+        Instant startDate = sixMonthsAgo.atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        List<Interview> interviews = interviewRepository.findInterviewsCreatedAfter(startDate, status);
+
+        Map<String, Integer> monthlyData = StatisticHelper.countByMonth(interviews);
+        double growthRate = StatisticHelper.calculateGrowthRate(monthlyData);
+
+        return new MonthlyDataDto(
+            interviews.size(),
+            growthRate,
+            monthlyData
+        );
+    }
+
+    public void deleteInterview(long requesterId, long interviewId) {
         interviewRepository.deleteById(interviewId);
+
+        logService.createLog(
+            requesterId,
+            "Interview has been deleted",
+            LogAction.DELETE,
+            LogEntityType.INTERVIEW,
+            interviewId
+        );
+
         logger.debug("Interview with id {} deleted", interviewId);
     }
 

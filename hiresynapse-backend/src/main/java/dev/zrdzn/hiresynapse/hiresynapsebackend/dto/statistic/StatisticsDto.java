@@ -1,4 +1,7 @@
-package dev.zrdzn.hiresynapse.hiresynapsebackend.dto;
+package dev.zrdzn.hiresynapse.hiresynapsebackend.dto.statistic;
+
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.interview.InterviewStatusCountDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.interview.InterviewTypeCountDto;
 
 import java.util.List;
 
@@ -12,8 +15,13 @@ public record StatisticsDto(
     List<InterviewTypeCountDto> interviewTypeCount,
     List<InterviewStatusCountDto> interviewStatusCount,
     MonthlyDataDto candidatesFromLastSixMonths,
+    MonthlyDataDto acceptedCandidatesFromLastSixMonths,
+    MonthlyDataDto rejectedCandidatesFromLastSixMonths,
+    MonthlyDataDto pendingCandidatesFromLastSixMonths,
     MonthlyDataDto jobsFromLastSixMonths,
     MonthlyDataDto interviewsFromLastSixMonths,
+    MonthlyDataDto scheduledInterviewsFromLastSixMonths,
+    MonthlyDataDto completedInterviewsFromLastSixMonths,
     MonthlyDataDto usersFromLastSixMonths
 ) {
 }

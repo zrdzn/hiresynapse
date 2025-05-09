@@ -1,4 +1,4 @@
-package dev.zrdzn.hiresynapse.hiresynapsebackend.model;
+package dev.zrdzn.hiresynapse.hiresynapsebackend.model.interview;
 
 public enum InterviewStatus {
 

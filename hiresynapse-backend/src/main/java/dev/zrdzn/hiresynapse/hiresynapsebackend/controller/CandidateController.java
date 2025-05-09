@@ -1,7 +1,7 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.controller;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.CandidateCreateDto;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.Candidate;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.candidate.Candidate;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.CandidateService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;

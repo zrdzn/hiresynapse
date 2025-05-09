@@ -1,8 +1,8 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.User;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserPrincipal;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.UserRole;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.User;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.UserPrincipal;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.UserRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;

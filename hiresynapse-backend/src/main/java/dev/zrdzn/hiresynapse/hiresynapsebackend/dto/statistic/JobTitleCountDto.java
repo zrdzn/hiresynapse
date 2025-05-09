@@ -1,4 +1,4 @@
-package dev.zrdzn.hiresynapse.hiresynapsebackend.dto;
+package dev.zrdzn.hiresynapse.hiresynapsebackend.dto.statistic;
 
 public record JobTitleCountDto(
     String title,

@@ -1,23 +1,11 @@
 import React, {useEffect, useState} from 'react'
-import classNames from 'classnames'
 
-import {
-  CButton,
-  CButtonGroup,
-  CCard,
-  CCardBody,
-  CCardFooter,
-  CCardHeader,
-  CCol,
-  CProgress,
-  CRow,
-  CSpinner,
-} from '@coreui/react'
+import {CCard, CCardBody, CCardFooter, CCardHeader, CCol, CProgress, CRow, CSpinner,} from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {cilCalendar, cilLocationPin} from '@coreui/icons'
 import Widgets from '../widgets/Widgets'
 import MainChart from './MainChart'
-import {statService} from "../../services/statService";
+import {statisticService} from "../../services/statisticService";
 import {capitalize} from "../../hooks/wordCapitalizeUtil";
 
 const Dashboard = () => {
@@ -25,7 +13,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    statService.getStats()
+    statisticService.getStats()
       .then(response => {
         setStats(response.data);
         setLoading(false);
@@ -41,14 +29,6 @@ const Dashboard = () => {
     );
   }
 
-  const progressExample = [
-    { title: 'Accepted', value: '2,703 Candidates', percent: 40, color: 'success' },
-    { title: 'Rejected', value: '2,093 Candidates', percent: 78, color: 'danger' },
-    { title: 'Interviews', value: '487 Candidates', percent: 18, color: 'warning' },
-    { title: 'Offers Extended', value: '123 Candidates', percent: 4, color: 'danger' },
-    { title: 'Acceptance Rate', value: 'Average Rate', percent: 82.5, color: 'primary' },
-  ]
-
   return (
     <>
       <Widgets stats={stats} className="mb-4" />
@@ -57,26 +37,11 @@ const Dashboard = () => {
           <CRow>
             <CCol sm={5}>
               <h4 id="candidates" className="card-title mb-0">
-                Candidate flow
+                Analytics flow
               </h4>
-              <div className="small text-body-secondary">January - July 2025</div>
-            </CCol>
-            <CCol sm={7} className="d-none d-md-block">
-              <CButtonGroup className="float-end me-3">
-                {['Week', 'Month', 'Quarter'].map((value) => (
-                  <CButton
-                    color="outline-secondary"
-                    key={value}
-                    className="mx-0"
-                    active={value === 'Month'}
-                  >
-                    {value}
-                  </CButton>
-                ))}
-              </CButtonGroup>
             </CCol>
           </CRow>
-          <MainChart />
+          <MainChart stats={stats} />
         </CCardBody>
         <CCardFooter>
           <CRow
@@ -86,20 +51,66 @@ const Dashboard = () => {
             xl={{ cols: 5 }}
             className="mb-2 text-center"
           >
-            {progressExample.map((item, index, items) => (
-              <CCol
-                className={classNames({
-                  'd-none d-xl-block': index + 1 === items.length,
-                })}
-                key={index}
-              >
-                <div className="text-body-secondary">{item.title}</div>
-                <div className="fw-semibold text-truncate">
-                  {item.value} ({item.percent}%)
-                </div>
-                <CProgress thin className="mt-2" color={item.color} value={item.percent} />
-              </CCol>
-            ))}
+            <CCol>
+              <div className="text-body-secondary">Accepted candidates</div>
+              <div className="fw-semibold text-truncate">
+                {stats.acceptedCandidatesFromLastSixMonths.total}
+              </div>
+              <CProgress
+                thin
+                className="mt-2"
+                color="success"
+                value={stats.acceptedCandidatesFromLastSixMonths.total / stats.candidateCount * 100}
+              />
+            </CCol>
+            <CCol>
+              <div className="text-body-secondary">Rejected candidates</div>
+              <div className="fw-semibold text-truncate">
+                {stats.rejectedCandidatesFromLastSixMonths.total}
+              </div>
+              <CProgress
+                thin
+                className="mt-2"
+                color="danger"
+                value={stats.rejectedCandidatesFromLastSixMonths.total / stats.candidateCount * 100}
+              />
+            </CCol>
+            <CCol>
+              <div className="text-body-secondary">Pending candidates</div>
+              <div className="fw-semibold text-truncate">
+                {stats.pendingCandidatesFromLastSixMonths.total}
+              </div>
+              <CProgress
+                thin
+                className="mt-2"
+                color="info"
+                value={stats.pendingCandidatesFromLastSixMonths.total / stats.candidateCount * 100}
+              />
+            </CCol>
+            <CCol>
+              <div className="text-body-secondary">Interviews scheduled</div>
+              <div className="fw-semibold text-truncate">
+                {stats.scheduledInterviewsFromLastSixMonths.total}
+              </div>
+              <CProgress
+                thin
+                className="mt-2"
+                color="warning"
+                value={stats.scheduledInterviewsFromLastSixMonths.total / stats.interviewCount * 100}
+              />
+            </CCol>
+            <CCol>
+              <div className="text-body-secondary">Interviews completed</div>
+              <div className="fw-semibold text-truncate">
+                {stats.completedInterviewsFromLastSixMonths.total}
+              </div>
+              <CProgress
+                thin
+                className="mt-2"
+                color="primary"
+                value={stats.completedInterviewsFromLastSixMonths.total / stats.interviewCount * 100}
+              />
+            </CCol>
           </CRow>
         </CCardFooter>
       </CCard>
