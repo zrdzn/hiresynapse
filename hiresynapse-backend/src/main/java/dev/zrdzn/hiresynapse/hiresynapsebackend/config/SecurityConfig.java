@@ -64,7 +64,7 @@ public class SecurityConfig {
                         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                         CorsConfiguration config = new CorsConfiguration();
 
-                        config.setAllowedOrigins(List.of("http://localhost:3000", "https://dev-2x7pq0i3.us.auth0.com"));
+                        config.setAllowedOrigins(List.of("http://localhost:3020", "https://dev-2x7pq0i3.us.auth0.com"));
                         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"));
                         config.setAllowedHeaders(List.of(
                             "Content-Type",
