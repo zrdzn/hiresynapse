@@ -44,7 +44,7 @@ public class CustomOidcUserService extends OidcUserService {
         logger.debug("Loaded user from oauth2 provider: {}", user);
 
         Collection<GrantedAuthority> authorities = new ArrayList<>(oidcUser.getAuthorities());
-        authorities.add(new SimpleGrantedAuthority("RECRUITER"));
+        authorities.add(new SimpleGrantedAuthority(user.getRole().name()));
 
         return new UserPrincipal(user, oidcUser, authorities);
     }

@@ -1,6 +1,6 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.controller;
 
-import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.Log;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.LogDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.LogService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -21,7 +21,7 @@ public class LogController {
     }
 
     @GetMapping
-    public List<Log> getLogs(
+    public List<LogDto> getLogs(
         @PageableDefault(size = 50) Pageable pageable
     ) {
         return logService.getLogs(pageable);

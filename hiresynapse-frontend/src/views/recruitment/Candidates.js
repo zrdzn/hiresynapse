@@ -68,7 +68,7 @@ const Candidates = () => {
                     <CCol xs={6}>
                       <div className="border-start border-start-4 border-start-danger py-1 px-3 mb-3">
                         <div className="text-body-secondary text-truncate small">Rejected</div>
-                        <div className="fs-5 fw-semibold">{candidates.filter(task => task.status === 'REJECTED').length}</div>
+                        <div className="fs-5 fw-semibold">{candidates.filter(candidate => candidate.status === 'REJECTED').length}</div>
                       </div>
                     </CCol>
                   </CRow>
@@ -78,13 +78,13 @@ const Candidates = () => {
                     <CCol xs={6}>
                       <div className="border-start border-start-4 border-start-warning py-1 px-3 mb-3">
                         <div className="text-body-secondary text-truncate small">Pending</div>
-                        <div className="fs-5 fw-semibold">{candidates.filter(task => task.status === 'PENDING').length}</div>
+                        <div className="fs-5 fw-semibold">{candidates.filter(candidate => candidate.status === 'PENDING').length}</div>
                       </div>
                     </CCol>
                     <CCol xs={6}>
                       <div className="border-start border-start-4 border-start-success py-1 px-3 mb-3">
                         <div className="text-body-secondary text-truncate small">Accepted</div>
-                        <div className="fs-5 fw-semibold">{candidates.filter(task => task.status === 'ACCEPTED').length}</div>
+                        <div className="fs-5 fw-semibold">{candidates.filter(candidate => candidate.status === 'ACCEPTED').length}</div>
                       </div>
                     </CCol>
                   </CRow>

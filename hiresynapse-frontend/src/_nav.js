@@ -7,7 +7,7 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Dashboard',
-    to: '/dashboard',
+    to: '/dashboard/index',
     icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
   },
   {
@@ -17,13 +17,13 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Candidates',
-    to: '/recruitment/candidates',
+    to: '/dashboard/recruitment/candidates',
     icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
     name: 'Interviews',
-    to: '/recruitment/interviews',
+    to: '/dashboard/recruitment/interviews',
     icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
   },
   {
@@ -33,13 +33,13 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Jobs',
-    to: '/management/jobs',
+    to: '/dashboard/management/jobs',
     icon: <CIcon icon={cilFactory} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
     name: 'Staff',
-    to: '/management/staff',
+    to: '/dashboard/management/staff',
     icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
   },
   {
@@ -49,13 +49,13 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Activity Logs',
-    to: '/logs-reports/activity-logs',
+    to: '/dashboard/logs-reports/activity-logs',
     icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
     name: 'Reports',
-    to: '/logs-reports/reports',
+    to: '/dashboard/logs-reports/reports',
     icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
   }
 ]

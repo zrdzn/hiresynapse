@@ -48,6 +48,40 @@ const ActivityLogs = () => {
               <span>Activity logs</span>
             </CCardHeader>
             <CCardBody>
+              <CRow>
+                <CCol xs={12} md={6} xl={6}>
+                  <CRow>
+                    <CCol xs={6}>
+                      <div className="border-start border-start-4 border-start-info py-1 px-3">
+                        <div className="text-body-secondary text-truncate small">All</div>
+                        <div className="fs-5 fw-semibold">{logs.length}</div>
+                      </div>
+                    </CCol>
+                    <CCol xs={6}>
+                      <div className="border-start border-start-4 border-start-danger py-1 px-3 mb-3">
+                        <div className="text-body-secondary text-truncate small">Delete</div>
+                        <div className="fs-5 fw-semibold">{logs.filter(log => log.action === 'DELETE').length}</div>
+                      </div>
+                    </CCol>
+                  </CRow>
+                </CCol>
+                <CCol xs={12} md={6} xl={6}>
+                  <CRow>
+                    <CCol xs={6}>
+                      <div className="border-start border-start-4 border-start-warning py-1 px-3 mb-3">
+                        <div className="text-body-secondary text-truncate small">Update</div>
+                        <div className="fs-5 fw-semibold">{logs.filter(log => log.action === 'UPDATE').length}</div>
+                      </div>
+                    </CCol>
+                    <CCol xs={6}>
+                      <div className="border-start border-start-4 border-start-success py-1 px-3 mb-3">
+                        <div className="text-body-secondary text-truncate small">Create</div>
+                        <div className="fs-5 fw-semibold">{logs.filter(log => log.action === 'CREATE').length}</div>
+                      </div>
+                    </CCol>
+                  </CRow>
+                </CCol>
+              </CRow>
               <CTable align="middle" className="mb-0 border" hover responsive>
                 <CTableHead className="text-nowrap">
                   <CTableRow>
@@ -61,24 +95,24 @@ const ActivityLogs = () => {
                 <CTableBody>
                   {logs.map((item, index) => (
                     <CTableRow v-for="item in tableItems" key={index}>
-                      <CTableDataCell>
+                      <CTableDataCell className="fw-semibold">
                         <div>{capitalize(item.action)}</div>
                       </CTableDataCell>
                       <CTableDataCell>
                         <div>{item.description}</div>
                       </CTableDataCell>
-                      <CTableDataCell>
-                        <div>[{item.entityId}] {capitalize(item.entityType)}</div>
+                      <CTableDataCell className="fw-semibold">
+                        <div>{capitalize(item.entityType)}</div>
                       </CTableDataCell>
-                      <CTableDataCell>
+                      <CTableDataCell className="fw-semibold">
                         {
-                          item.performer.id === null ?
-                            <div>System</div> :
-                            <div>[{item.performer.id}] {item.performer.firstName} {item.performer.lastName}</div>
+                          item.performerId === null ?
+                            <div>{item.performerName}</div> :
+                            <div>{item.performerName}</div>
                         }
                       </CTableDataCell>
                       <CTableDataCell className="text-end">
-                        <div>{formatDate(item.loggedAt, true)}</div>
+                        <div>{formatDate(item.createdAt, true)}</div>
                       </CTableDataCell>
                     </CTableRow>
                   ))}

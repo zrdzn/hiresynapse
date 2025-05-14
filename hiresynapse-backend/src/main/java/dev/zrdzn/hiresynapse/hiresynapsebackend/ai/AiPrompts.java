@@ -17,8 +17,8 @@ public class AiPrompts {
         String firstName;
         String lastName;
         String phone; // XXX XXX XXX
-        String executiveSummary; // short summary of the candidate
-        String analysedSummary; // short summary of the candidate analysed by you, include everything possible
+        String executiveSummary; // short summary of the candidate (maximum 250 characters)
+        String analysedSummary; // short summary of the candidate analysed by you, include everything possible (maximum 250 characters)
         String careerTrajectory; // career trajectory of the candidate calculated from the experience
         Map<String, String> relatedExperience; // <job title> at <company>: startYear-endYear NOTE: here are only related job titles to the job title candidate is applying for
         Map<String, String> experience; // <job title> at <company>: startYear-endYear

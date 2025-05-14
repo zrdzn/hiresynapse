@@ -131,7 +131,7 @@ public class CandidateService {
         Path path;
         try {
             File tempFile = File.createTempFile(
-                createdCandidate.getId().toString(),
+                createdCandidate.getId().toString() + "-" + createdCandidate.getEmail(),
                 resumeFileName.substring(resumeFileName.lastIndexOf('.'))
             );
             tempFile.deleteOnExit();

@@ -44,7 +44,16 @@ const ApplyOffers = () => {
 
   return (
     <div className="p-4">
-      <h1 className="mb-4">Job Openings</h1>
+      <CRow>
+        <CCol>
+          <h1 className="mb-4">Job Openings</h1>
+        </CCol>
+        <CCol className="text-end">
+          <CButton color="primary" href="#/dashboard">
+            Sign in
+          </CButton>
+        </CCol>
+      </CRow>
       <CRow>
         {jobs.map((job) => (
           <CCol sm={12} lg={4} className="mb-4" key={job.id}>
@@ -101,7 +110,7 @@ const ApplyOffers = () => {
                   <small className="text-medium-emphasis">Posted {formatDate(job.createdAt, true)}</small>
                 </div>
                 <div className="d-flex align-items-center gap-3">
-                  <CButton href={`/#/apply/${job.id}`} color="primary">Apply Now</CButton>
+                  <CButton href={`/#/public/apply/${job.id}`} color="primary">Apply now</CButton>
                 </div>
               </CCardFooter>
             </CCard>

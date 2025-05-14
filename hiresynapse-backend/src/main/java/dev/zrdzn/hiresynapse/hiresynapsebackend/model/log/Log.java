@@ -2,12 +2,12 @@ package dev.zrdzn.hiresynapse.hiresynapsebackend.model.log;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.User;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticPoint;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -41,8 +41,9 @@ public class Log implements StatisticPoint {
     @Column
     private Instant updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "performer_id")
+    @Nullable
     private User performer;
 
     @NotBlank(message = "Description is required")

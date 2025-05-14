@@ -8,7 +8,7 @@ import MainChart from './MainChart'
 import {statisticService} from "../../services/statisticService";
 import {capitalize} from "../../hooks/wordCapitalizeUtil";
 
-const Dashboard = () => {
+const Index = () => {
   const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -250,4 +250,4 @@ const Dashboard = () => {
   )
 }
 
-export default Dashboard
+export default Index

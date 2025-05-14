@@ -36,7 +36,10 @@ const Apply = () => {
         setJob(response.data);
         setLoading(false);
       })
-      .catch(err => console.error(err))
+      .catch(err => {
+        console.error(err)
+        navigate('/#/apply')
+      })
   }, [jobId]);
 
   if (loading) {
@@ -81,6 +84,7 @@ const Apply = () => {
         navigate('/#/apply')
       })
       .catch(err => {
+        toast.error("There was an error submitting your application")
         console.error(err)
         if (Array.isArray(err.response.data)) {
           err.response.data.forEach(message => toast.error(message))

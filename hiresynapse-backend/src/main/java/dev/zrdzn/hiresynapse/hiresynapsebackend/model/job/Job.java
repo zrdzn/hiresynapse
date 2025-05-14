@@ -51,10 +51,13 @@ public class Job implements StatisticPoint {
     @NotBlank(message = "Location is required")
     private String location;
 
+    @Column
     private String salary;
 
+    @Column
     private String requiredExperience;
 
+    @Column
     @Enumerated(EnumType.STRING)
     private JobStatus status;
 
@@ -66,6 +69,7 @@ public class Job implements StatisticPoint {
     @Column(columnDefinition = "jsonb")
     private List<String> benefits;
 
+    @Column
     @Enumerated(EnumType.STRING)
     private TaskStatus taskStatus;
 
