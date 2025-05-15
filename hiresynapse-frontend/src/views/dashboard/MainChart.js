@@ -9,9 +9,20 @@ const MainChart = ({ stats }) => {
   const acceptedCandidatesMonthlyData = Object.values(stats.acceptedCandidatesFromLastSixMonths.monthlyData)
   const rejectedCandidatesMonthlyData = Object.values(stats.rejectedCandidatesFromLastSixMonths.monthlyData)
   const pendingCandidatesMonthlyData = Object.values(stats.pendingCandidatesFromLastSixMonths.monthlyData)
+  const scheduledInterviewsMonthlyData = Object.values(stats.scheduledInterviewsFromLastSixMonths.monthlyData)
+  const completedInterviewsMonthlyData = Object.values(stats.completedInterviewsFromLastSixMonths.monthlyData)
 
   const labels = Object.keys(stats.acceptedCandidatesFromLastSixMonths.monthlyData)
 
+  const allData = [
+    ...acceptedCandidatesMonthlyData,
+    ...rejectedCandidatesMonthlyData,
+    ...pendingCandidatesMonthlyData,
+    ...scheduledInterviewsMonthlyData,
+    ...completedInterviewsMonthlyData,
+  ];
+  const maxValue = Math.max(...allData);
+  const stepSize = Math.ceil(maxValue / 5) || 1;
 
   useEffect(() => {
     document.documentElement.addEventListener('ColorSchemeChange', () => {
@@ -33,8 +44,6 @@ const MainChart = ({ stats }) => {
     })
   }, [chartRef])
 
-  const random = () => Math.round(Math.random() * 100)
-
   return (
     <>
       <CChartLine
@@ -44,7 +53,7 @@ const MainChart = ({ stats }) => {
           labels: labels,
           datasets: [
             {
-              label: 'Accepted',
+              label: 'Accepted candidates',
               backgroundColor: `rgba(${getStyle('--cui-success-rgb')}, .1)`,
               borderColor: getStyle('--cui-success'),
               pointHoverBackgroundColor: getStyle('--cui-success'),
@@ -53,7 +62,7 @@ const MainChart = ({ stats }) => {
               fill: true,
             },
             {
-              label: 'Rejected',
+              label: 'Rejected candidates',
               backgroundColor: 'transparent',
               borderColor: getStyle('--cui-danger'),
               pointHoverBackgroundColor: getStyle('--cui-danger'),
@@ -61,12 +70,28 @@ const MainChart = ({ stats }) => {
               data: rejectedCandidatesMonthlyData,
             },
             {
-              label: 'Active applications',
+              label: 'Pending applications',
               backgroundColor: 'transparent',
               borderColor: getStyle('--cui-info'),
               pointHoverBackgroundColor: getStyle('--cui-info'),
               borderWidth: 2,
               data: pendingCandidatesMonthlyData,
+            },
+            {
+              label: 'Scheduled interviews',
+              backgroundColor: 'transparent',
+              borderColor: getStyle('--cui-warning'),
+              pointHoverBackgroundColor: getStyle('--cui-warning'),
+              borderWidth: 2,
+              data: scheduledInterviewsMonthlyData,
+            },
+            {
+              label: 'Completed interviews',
+              backgroundColor: 'transparent',
+              borderColor: getStyle('--cui-primary'),
+              pointHoverBackgroundColor: getStyle('--cui-primary'),
+              borderWidth: 2,
+              data: completedInterviewsMonthlyData,
             },
           ],
         }}
@@ -89,13 +114,13 @@ const MainChart = ({ stats }) => {
             },
             y: {
               beginAtZero: true,
+              max: maxValue + stepSize,
               border: {
                 color: getStyle('--cui-border-color-translucent'),
               },
               grid: {
                 color: getStyle('--cui-border-color-translucent'),
               },
-              max: 250,
               ticks: {
                 color: getStyle('--cui-body-color'),
                 maxTicksLimit: 5,

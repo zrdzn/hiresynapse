@@ -167,7 +167,7 @@ const Candidates = () => {
                           <CButton className="text-white bg-success" size="sm">
                             Accept
                           </CButton>
-                          <CButton href={`/#/recruitment/candidates/${item.id}`} className="text-white bg-primary mx-1" size="sm">
+                          <CButton href={`/#/dashboard/recruitment/candidates/${item.id}`} className="text-white bg-primary mx-1" size="sm">
                             Analysis
                           </CButton>
                           <CButton className="text-white bg-danger" size="sm">
