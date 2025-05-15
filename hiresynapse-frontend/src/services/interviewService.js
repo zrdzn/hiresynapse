@@ -18,4 +18,10 @@ export const interviewService = {
   getUnconfirmedInterviews: () => {
     return api.get(`${INTERVIEWS_URL}/unconfirmed?size=3`)
   },
+  deleteInterview: (interviewId) => {
+    if (!interviewId) {
+      throw new Error('Interview ID is required')
+    }
+    return api.delete(`${INTERVIEWS_URL}/${interviewId}`)
+  }
 }

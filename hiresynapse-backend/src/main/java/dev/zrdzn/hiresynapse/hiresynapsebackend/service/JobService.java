@@ -1,5 +1,7 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.service;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.JobCreateDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.JobUpdateDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.statistic.MonthlyDataDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.error.ApiError;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
@@ -20,6 +22,7 @@ import org.springframework.validation.annotation.Validated;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,10 +48,24 @@ public class JobService {
         this.logService = logService;
     }
 
-    public Job initiateJobCreation(long requesterId, @Valid Job job) {
-        job.setTaskStatus(TaskStatus.PENDING);
-
-        Job createdJob = jobRepository.save(job);
+    public Job initiateJobCreation(long requesterId, @Valid JobCreateDto jobCreateDto) {
+        Job createdJob = jobRepository.save(
+            new Job(
+                null,
+                null,
+                null,
+                jobCreateDto.title(),
+                jobCreateDto.description(),
+                jobCreateDto.location(),
+                jobCreateDto.salary(),
+                jobCreateDto.requiredExperience(),
+                jobCreateDto.status(),
+                Arrays.stream(jobCreateDto.requirements().split(",")).toList(),
+                Arrays.stream(jobCreateDto.benefits().split(",")).toList(),
+                TaskStatus.PENDING,
+                null
+            )
+        );
 
         logService.createLog(
             requesterId,
@@ -82,6 +99,32 @@ public class JobService {
 
             throw new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process job");
         });
+    }
+
+    public void updateJob(long requesterId, long jobId, JobUpdateDto jobUpdateDto) {
+        Job job = jobRepository.findById(jobId)
+            .orElseThrow(() -> new ApiError(HttpStatus.NOT_FOUND, "Job not found"));
+
+        job.setTitle(jobUpdateDto.title());
+        job.setDescription(jobUpdateDto.description());
+        job.setLocation(jobUpdateDto.location());
+        job.setSalary(jobUpdateDto.salary());
+        job.setRequiredExperience(jobUpdateDto.requiredExperience());
+        job.setStatus(jobUpdateDto.status());
+        job.setRequirements(Arrays.stream(jobUpdateDto.requirements().split(",")).toList());
+        job.setBenefits(Arrays.stream(jobUpdateDto.benefits().split(",")).toList());
+
+        jobRepository.save(job);
+
+        logService.createLog(
+            requesterId,
+            "Job has been updated",
+            LogAction.UPDATE,
+            LogEntityType.JOB,
+            job.getId()
+        );
+
+        logger.debug("Updated job: {}", jobId);
     }
 
     public void updateJobStatus(long requesterId, long jobId, JobStatus status) {

@@ -1,19 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import classNames from 'classnames'
 
-import {
-  CBadge,
-  CButton,
-  CButtonGroup,
-  CCard,
-  CCardBody,
-  CCardFooter,
-  CCardHeader,
-  CCol,
-  CProgress,
-  CRow,
-  CSpinner,
-} from '@coreui/react'
+import {CBadge, CCard, CCardBody, CCardFooter, CCardHeader, CCol, CProgress, CRow, CSpinner,} from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import * as icons from '@coreui/icons'
 import {cilBriefcase, cilCode, cilEducation} from '@coreui/icons'
@@ -53,20 +41,6 @@ const CandidateAnalysis = () => {
                 {candidate.firstName} {candidate.lastName}
               </h4>
               <div className="small text-body-secondary">{candidate.job.title} - {candidate.job.location}</div>
-            </CCol>
-            <CCol sm={7} className="d-none d-md-block">
-              <CButtonGroup className="float-end me-3">
-                {['Profile', 'Interview'].map((value) => (
-                  <CButton
-                    color="outline-secondary"
-                    key={value}
-                    className="mx-0"
-                    active={value === 'Profile'}
-                  >
-                    {value}
-                  </CButton>
-                ))}
-              </CButtonGroup>
             </CCol>
           </CRow>
         </CCardBody>

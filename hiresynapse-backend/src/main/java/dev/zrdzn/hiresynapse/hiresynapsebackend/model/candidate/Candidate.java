@@ -1,7 +1,9 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.model.candidate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.interview.Interview;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticPoint;
 import jakarta.persistence.CascadeType;
@@ -14,6 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -43,7 +46,7 @@ public class Candidate implements StatisticPoint {
     @Column
     private Instant updatedAt;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "job_id", nullable = false)
     private Job job;
 
@@ -124,6 +127,10 @@ public class Candidate implements StatisticPoint {
     @Type(JsonBinaryType.class)
     @Column(columnDefinition = "jsonb")
     private List<String> keySoftSkills;
+
+    @OneToMany(mappedBy = "candidate", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
+    private List<Interview> interviews;
 
     @PrePersist
     protected void onCreate() {

@@ -9,6 +9,15 @@ export const jobService = {
     }
     return api.post(`${JOBS_URL}`, request)
   },
+  updateJob: (jobId, request) => {
+    if (!jobId) {
+      throw new Error('Job ID is required')
+    }
+    if (!request) {
+      throw new Error('Request is required')
+    }
+    return api.patch(`${JOBS_URL}/${jobId}`, request)
+  },
   getJobs: () => {
     return api.get(`${JOBS_URL}`)
   },

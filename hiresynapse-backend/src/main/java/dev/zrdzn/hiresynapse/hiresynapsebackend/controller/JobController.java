@@ -1,5 +1,7 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.controller;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.JobCreateDto;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.JobUpdateDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.JobStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.UserPrincipal;
@@ -33,9 +35,18 @@ public class JobController {
     @PostMapping
     public Job createJob(
         @AuthenticationPrincipal UserPrincipal principal,
-        @RequestBody Job job
+        @RequestBody JobCreateDto jobCreateDto
     ) {
-        return jobService.initiateJobCreation(principal.getUser().getId(), job);
+        return jobService.initiateJobCreation(principal.getUser().getId(), jobCreateDto);
+    }
+
+    @PatchMapping("/{jobId}")
+    public void updateJob(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable long jobId,
+        @RequestBody JobUpdateDto jobUpdateDto
+    ) {
+        jobService.updateJob(principal.getUser().getId(), jobId, jobUpdateDto);
     }
 
     @GetMapping

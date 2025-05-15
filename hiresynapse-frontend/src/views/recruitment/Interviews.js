@@ -30,18 +30,7 @@ import {InterviewList} from "../../components/interview/InterviewList";
 import {FullCalendar} from "../../components/interview/FullCalendar";
 import {toast} from "react-toastify";
 import {interviewService} from "../../services/interviewService";
-import {
-  FiArchive,
-  FiCalendar,
-  FiClock,
-  FiEdit,
-  FiMoreHorizontal,
-  FiSend,
-  FiTrash2,
-  FiUpload,
-  FiX,
-  FiZap
-} from "react-icons/fi";
+import {FiMoreHorizontal, FiTrash2} from "react-icons/fi";
 import {capitalize} from "../../hooks/wordCapitalizeUtil";
 
 const Interviews = () => {
@@ -116,6 +105,20 @@ const Interviews = () => {
         if (Array.isArray(err.response.data)) {
           err.response.data.forEach(message => toast.error(message))
         }
+      })
+  }
+
+  const handleInterviewDelete = (event, id) => {
+    event.preventDefault()
+
+    interviewService.deleteInterview(id)
+      .then(() => {
+        setInterviews([...interviews.filter(interview => interview.id !== id)]);
+        toast.success('Interview deleted successfully')
+      })
+      .catch(error => {
+        console.error(error)
+        toast.error('Could not delete interview')
       })
   }
 
@@ -329,7 +332,7 @@ const Interviews = () => {
                   <CTableBody>
                     {interviews.map((item, index) => (
                       <CTableRow v-for="item in tableItems" key={index}>
-                        <CTableDataCell>
+                        <CTableDataCell className="fw-semibold">
                           <div>{item.candidate.firstName} {item.candidate.lastName}</div>
                           <div className="small text-body-secondary text-nowrap">
                             <span>{item.candidate.email}</span> | {item.candidate.phone}
@@ -341,85 +344,25 @@ const Interviews = () => {
                             <span>{item.recruiter.email}</span>
                           </div>
                         </CTableDataCell>
-                        <CTableDataCell className="text-center">
-                          <div className="text-nowrap">{item.salary === '' ? 'Undisclosed' : item.salary}</div>
+                        <CTableDataCell className="text-center">{item.candidate.job.title}</CTableDataCell>
+                        <CTableDataCell className="text-center fw-semibold">
+                          {capitalize(item.interviewType)}
                         </CTableDataCell>
                         <CTableDataCell className="text-center">
                           <div className="fw-semibold text-center mb-1">{capitalize(item.status)}</div>
                           <CProgress thin
-                                     color={item.status === 'UNPUBLISHED' ? 'danger' : item.status === 'SCHEDULED' ? 'warning' : 'success'}
+                                     color={item.status === 'CANCELLED' ? 'danger' : item.status === 'SCHEDULED' ? 'warning' : 'success'}
                                      value="100" />
                         </CTableDataCell>
                         <CTableDataCell className="text-end">
-                          {
-                            item.status === 'UNPUBLISHED' &&
-                            <CDropdown alignment="end">
-                              <CDropdownToggle className="bg-success text-white me-1 rounded-1" caret={false} size="sm">
-                                <FiUpload className="me-1" size={16} />
-                                Publish
-                              </CDropdownToggle>
-                              <CDropdownMenu className="table-dropdown-fix">
-                                <CDropdownItem href="#" className="d-flex align-items-center">
-                                  <FiSend className="me-2" size={16} />
-                                  Publish now
-                                </CDropdownItem>
-                                <CDropdownItem href="#" className="d-flex align-items-center">
-                                  <FiCalendar className="me-2" size={16} />
-                                  Schedule
-                                </CDropdownItem>
-                              </CDropdownMenu>
-                            </CDropdown>
-                          }
-
-                          {
-                            item.status === 'SCHEDULED' &&
-                            <CDropdown alignment="end">
-                              <CDropdownToggle className="bg-warning text-white me-1 rounded-1" caret={false} size="sm">
-                                <FiCalendar className="me-1" size={16} />
-                                Schedule
-                              </CDropdownToggle>
-                              <CDropdownMenu className="table-dropdown-fix">
-                                <CDropdownItem href="#" className="d-flex align-items-center">
-                                  <FiClock className="me-2" size={16} />
-                                  Reschedule
-                                </CDropdownItem>
-                                <CDropdownItem href="#" className="d-flex align-items-center">
-                                  <FiZap className="me-2" size={16} />
-                                  Publish now
-                                </CDropdownItem>
-                                <CDropdownItem href="#" className="d-flex align-items-center">
-                                  <FiX className="me-2" size={16} />
-                                  Cancel
-                                </CDropdownItem>
-                              </CDropdownMenu>
-                            </CDropdown>
-                          }
-
-                          {
-                            item.status === 'PUBLISHED' &&
-                            <CButton
-                              className="text-white bg-danger me-1 align-items-center"
-                              size="sm"
-                            >
-                              <FiArchive className="me-1" size={16} />
-                              Unpublish
-                            </CButton>
-                          }
-
-                          <CButton
-                            className="text-white bg-info me-1 align-items-center"
-                            size="sm"
-                          >
-                            <FiEdit className="me-1" size={16} />
-                            Edit
-                          </CButton>
-
                           <CDropdown alignment="end">
                             <CDropdownToggle color="light" className="rounded-1" caret={false} size="sm">
                               <FiMoreHorizontal size={16} />
                             </CDropdownToggle>
-                            <CDropdownMenu className="table-dropdown-fix">
-                              <CDropdownItem href="#" className="text-danger d-flex align-items-center">
+                            <CDropdownMenu>
+                              <CDropdownItem
+                                className="text-danger d-flex align-items-center"
+                                onClick={event => handleInterviewDelete(event, item.id)}>
                                 <FiTrash2 className="me-2" size={16} />
                                 Delete
                               </CDropdownItem>

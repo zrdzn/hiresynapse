@@ -10,10 +10,9 @@ import {
   CDropdownItem,
   CDropdownMenu,
   CDropdownToggle,
-  CForm,
-  CFormCheck,
-  CFormInput,
-  CFormTextarea,
+  CModal,
+  CModalBody,
+  CModalHeader,
   CProgress,
   CRow,
   CSpinner,
@@ -40,10 +39,13 @@ import {
 } from "react-icons/fi";
 import {toast} from "react-toastify";
 import {capitalize} from "../../hooks/wordCapitalizeUtil";
+import {JobForm} from "../../components/JobForm";
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
   const [jobStatus, setJobStatus] = useState('PUBLISHED');
+  const [editJob, setEditJob] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [createJobRequest, setCreateJobRequest] = useState({
     title: '',
     description: '',
@@ -51,15 +53,13 @@ const Jobs = () => {
     salary: '',
     requiredExperience: '',
     status: jobStatus,
-    requirements: [],
-    benefits: [],
+    requirements: '',
+    benefits: '',
   });
   const [loading, setLoading] = useState(true);
   const [titleError, setTitleError] = useState(false);
   const [descriptionError, setDescriptionError] = useState(false);
   const [locationError, setLocationError] = useState(false);
-  const [requirementsInput, setRequirementsInput] = useState('');
-  const [benefitsInput, setBenefitsInput] = useState('');
 
   useEffect(() => {
     jobService.getJobs()
@@ -103,16 +103,6 @@ const Jobs = () => {
       }
     }
 
-    if (event.target.name === 'requirements') {
-      setRequirementsInput(event.target.value);
-      return;
-    }
-
-    if (event.target.name === 'benefits') {
-      setBenefitsInput(event.target.value);
-      return;
-    }
-
     setCreateJobRequest({
       ...createJobRequest,
       [event.target.name]: event.target.value
@@ -120,20 +110,8 @@ const Jobs = () => {
   }
 
   const handleJobCreate = () => {
-    const requirementsArray = requirementsInput
-      .split(',')
-      .map(item => item.trim())
-      .filter(item => item !== '');
-
-    const benefitsArray = benefitsInput
-      .split(',')
-      .map(item => item.trim())
-      .filter(item => item !== '');
-
     const finalRequest = {
       ...createJobRequest,
-      requirements: requirementsArray,
-      benefits: benefitsArray,
       status: jobStatus
     };
 
@@ -147,11 +125,9 @@ const Jobs = () => {
           salary: '',
           requiredExperience: '',
           status: jobStatus,
-          requirements: [],
-          benefits: []
+          requirements: '',
+          benefits: ''
         })
-        setRequirementsInput('');
-        setBenefitsInput('');
         toast.success(`Job ${response.data.title} created successfully`)
       })
       .catch(err => {
@@ -204,6 +180,35 @@ const Jobs = () => {
       })
   }
 
+  const handleEditClick = (event, job) => {
+    event.preventDefault()
+    setEditJob({
+      ...job,
+      requirements: job.requirements.join(','),
+      benefits: job.benefits.join(',')
+    })
+    setIsEditModalOpen(true)
+  }
+
+  const handleEditFieldsChange = (event) => {
+    setEditJob({
+      ...editJob,
+      [event.target.name]: event.target.value
+    })
+  }
+
+  const handleJobUpdate = () => {
+    jobService.updateJob(editJob.id, editJob)
+      .then(response => {
+        setIsEditModalOpen(false)
+        toast.success(`Job ${response.data.title} updated successfully`);
+      })
+      .catch(error => {
+        console.error(error);
+        toast.error('Could not update job');
+      })
+  }
+
   return (
     <>
       <CRow>
@@ -213,106 +218,16 @@ const Jobs = () => {
               <span>Create new job</span>
             </CCardHeader>
             <CCardBody>
-              <CForm onChange={handleFieldsChange}>
-                <CRow className="mb-3">
-                  <CCol md={6}>
-                    <CFormInput
-                      name="title"
-                      type="text"
-                      label="Title"
-                      placeholder="Software Engineer..."
-                      text="Must be 3-50 characters long"
-                      required
-                      value={createJobRequest.title}
-                      valid={createJobRequest.title !== '' && !titleError}
-                      invalid={titleError}
-                    />
-                    <div className="mt-3">
-                      <CFormTextarea
-                        name="description"
-                        type="text"
-                        label="Description"
-                        placeholder="Job description"
-                        rows={3}
-                        text="Must be 3-1000 characters long"
-                        required
-                        value={createJobRequest.description}
-                        valid={createJobRequest.description !== '' && !descriptionError}
-                        invalid={descriptionError}
-                      ></CFormTextarea>
-                    </div>
-                    <div className="mt-3">
-                      <CFormInput
-                        name="location"
-                        type="text"
-                        label="Location"
-                        placeholder="Amsterdam / Warsaw / Remote..."
-                        text="Must not be empty"
-                        required
-                        value={createJobRequest.location}
-                        valid={createJobRequest.location !== '' && !locationError}
-                        invalid={locationError}
-                      />
-                    </div>
-                  </CCol>
-
-                  <CCol md={6}>
-                    <CFormInput
-                      name="requirements"
-                      type="text"
-                      label="Requirements"
-                      value={requirementsInput}
-                      placeholder="Python, Java, C++..."
-                    />
-                    <div className="mt-3">
-                      <CFormInput
-                        name="benefits"
-                        type="text"
-                        label="Benefits"
-                        value={benefitsInput}
-                        placeholder="Free lunch, Gym membership..."
-                      />
-                    </div>
-                    <div className="mt-3">
-                      <CFormInput
-                        name="salary"
-                        type="text"
-                        label="Estimated salary"
-                        value={createJobRequest.salary}
-                        placeholder="$10000"
-                      />
-                    </div>
-                    <div className="mt-3">
-                      <CFormInput
-                        name="requiredExperience"
-                        type="text"
-                        label="Required experience"
-                        value={createJobRequest.requiredExperience}
-                        placeholder="2 years"
-                      />
-                    </div>
-                    <div className="mt-3">
-                      <CFormCheck
-                        id="check1"
-                        label="Auto publish job after creation"
-                        defaultChecked={jobStatus === "PUBLISHED"}
-                        onChange={event =>
-                          event.target.checked === true ?
-                            setJobStatus("PUBLISHED") :
-                            setJobStatus("UNPUBLISHED")}
-                      />
-                    </div>
-                  </CCol>
-                </CRow>
-
-                <CButton
-                  color="primary"
-                  className="mt-3"
-                  onClick={handleJobCreate}
-                >
-                  Create job
-                </CButton>
-              </CForm>
+              <JobForm
+                jobData={createJobRequest}
+                onChange={handleFieldsChange}
+                onSubmit={handleJobCreate}
+                jobStatus={jobStatus}
+                setJobStatus={setJobStatus}
+                titleError={titleError}
+                descriptionError={descriptionError}
+                locationError={locationError}
+              />
             </CCardBody>
           </CCard>
         </CCol>
@@ -454,10 +369,25 @@ const Jobs = () => {
                         <CButton
                           className="text-white bg-info me-1 align-items-center"
                           size="sm"
+                          onClick={event => handleEditClick(event, item)}
                         >
                           <FiEdit className="me-1" size={16} />
                           Edit
                         </CButton>
+                        <CModal visible={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+                          <CModalHeader>Edit Job</CModalHeader>
+                          <CModalBody>
+                            <JobForm
+                              jobData={editJob}
+                              onChange={handleEditFieldsChange}
+                              onSubmit={handleJobUpdate}
+                              isEdit={true}
+                              titleError={titleError}
+                              descriptionError={descriptionError}
+                              locationError={locationError}
+                            />
+                          </CModalBody>
+                        </CModal>
 
                         <CDropdown alignment="end">
                           <CDropdownToggle color="light" className="rounded-1" caret={false} size="sm">

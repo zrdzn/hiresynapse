@@ -75,16 +75,16 @@ const Staff = () => {
                 <CTableBody>
                   {staff.map((item, index) => (
                     <CTableRow v-for="item in tableItems" key={index}>
-                      <CTableDataCell>
+                      <CTableDataCell className="fw-semibold">
                         <div>{item.username}</div>
                       </CTableDataCell>
-                      <CTableDataCell>
+                      <CTableDataCell className="fw-semibold">
                         <div>{item.email}</div>
                       </CTableDataCell>
                       <CTableDataCell>
                         <div>{item.firstName} {item.lastName}</div>
                       </CTableDataCell>
-                      <CTableDataCell>
+                      <CTableDataCell className="fw-semibold">
                         <div>{capitalize(item.role)}</div>
                       </CTableDataCell>
                       <CTableDataCell className="text-end">

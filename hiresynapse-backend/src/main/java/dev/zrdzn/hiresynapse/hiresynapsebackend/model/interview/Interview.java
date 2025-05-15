@@ -5,7 +5,6 @@ import dev.zrdzn.hiresynapse.hiresynapsebackend.model.TaskStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.candidate.Candidate;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.User;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticPoint;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -44,11 +43,11 @@ public class Interview implements StatisticPoint {
     @Column
     private Instant updatedAt;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "recruiter_id", nullable = false)
     private User recruiter;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "candidate_id", nullable = false)
     private Candidate candidate;
 
