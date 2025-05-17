@@ -10,7 +10,6 @@ import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.JobStatus;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.LogAction;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.LogEntityType;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.JobRepository;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticHelper;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +23,10 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+
+import static dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticHelper.getMonthlyData;
 
 @Service
 @Validated
@@ -187,14 +187,7 @@ public class JobService {
 
         List<Job> jobs = jobRepository.findJobsCreatedAfter(startDate);
 
-        Map<String, Integer> monthlyData = StatisticHelper.countByMonth(jobs);
-        double growthRate = StatisticHelper.calculateGrowthRate(monthlyData);
-
-        return new MonthlyDataDto(
-            jobs.size(),
-            growthRate,
-            monthlyData
-        );
+        return getMonthlyData(jobs);
     }
 
     public void deleteJob(long requesterId, long jobId) {

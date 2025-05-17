@@ -5,7 +5,6 @@ import dev.zrdzn.hiresynapse.hiresynapsebackend.error.ApiError;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.User;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.UserRole;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.UserRepository;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -16,8 +15,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+
+import static dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticHelper.getMonthlyData;
 
 @Service
 public class UserService {
@@ -74,14 +74,7 @@ public class UserService {
 
         List<User> users = userRepository.findUsersCreatedAfter(startDate);
 
-        Map<String, Integer> monthlyData = StatisticHelper.countByMonth(users);
-        double growthRate = StatisticHelper.calculateGrowthRate(monthlyData);
-
-        return new MonthlyDataDto(
-            users.size(),
-            growthRate,
-            monthlyData
-        );
+        return getMonthlyData(users);
     }
 
     public void deleteUser(long requesterId, long userId) {

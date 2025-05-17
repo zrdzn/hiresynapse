@@ -17,7 +17,6 @@ import dev.zrdzn.hiresynapse.hiresynapsebackend.model.job.Job;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.LogAction;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.LogEntityType;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.CandidateRepository;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticHelper;
 import jakarta.validation.Valid;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
@@ -49,6 +48,7 @@ import java.util.concurrent.CompletableFuture;
 import static dev.zrdzn.hiresynapse.hiresynapsebackend.ai.AiPrompts.CANDIDATE_RESUME_ANALYZE_PROMPT;
 import static dev.zrdzn.hiresynapse.hiresynapsebackend.shared.CollectionHelper.emptyListIfNull;
 import static dev.zrdzn.hiresynapse.hiresynapsebackend.shared.CollectionHelper.emptyMapIfNull;
+import static dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticHelper.getMonthlyData;
 
 @Service
 @Validated
@@ -90,33 +90,11 @@ public class CandidateService {
         Job job = jobService.getJob(candidateCreateDto.jobId()).orElseThrow();
 
         Candidate candidate = new Candidate(
-            null,
-            null,
-            null,
             job,
             candidateCreateDto.email(),
             CandidateStatus.PENDING,
             TaskStatus.PENDING,
-            candidateCreateDto.utmSource(),
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
+            candidateCreateDto.utmSource()
         );
 
         Candidate createdCandidate = candidateRepository.save(candidate);
@@ -129,23 +107,7 @@ public class CandidateService {
             createdCandidate.getId()
         );
 
-        Path path;
-        try {
-            File tempFile = File.createTempFile(
-                createdCandidate.getId().toString() + "-" + createdCandidate.getEmail(),
-                resumeFileName.substring(resumeFileName.lastIndexOf('.'))
-            );
-            tempFile.deleteOnExit();
-
-            path = tempFile.toPath();
-
-            Files.copy(resumeFile.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-
-            logger.debug("Created temp file: {}", path);
-        } catch (IOException exception) {
-            logger.error("Failed to create temp file", exception);
-            throw new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create temp file");
-        }
+        Path path = createTempFile(createdCandidate.getId(), candidateCreateDto.email(), resumeFileName, resumeFile);
 
         taskService.sendEvent(
             createdCandidate.getId(),
@@ -163,20 +125,7 @@ public class CandidateService {
                 logger.debug("Processing candidate: {}", candidateCreateEvent.candidateReferenceId());
 
                 logger.debug("Extracting data from resume sent by candidate: {}", candidateCreateEvent.candidateReferenceId());
-                String resumeContent;
-                Path path = Path.of(candidateCreateEvent.resumeFilePath());
-                try (InputStream resumeFileStream = Files.newInputStream(path)) {
-                    resumeContent = documentExtractorService.extractText(candidateCreateEvent.resumeFileName(), resumeFileStream);
-                } catch (IOException exception) {
-                    throw new RuntimeException("Failed to extract text from resume file", exception);
-                } finally {
-                    try {
-                        Files.deleteIfExists(path);
-                        logger.debug("Deleted temp file: {}", path);
-                    } catch (IOException exception) {
-                        logger.warn("Failed to delete temp file: {}", path, exception);
-                    }
-                }
+                String resumeContent = readTempFile(candidateCreateEvent.resumeFilePath(), candidateCreateEvent.resumeFileName());
 
                 Job job = jobService.getJob(candidateCreateEvent.jobId()).orElseThrow();
 
@@ -359,7 +308,6 @@ public class CandidateService {
         List<UtmSourceCountDto> filteredResults = new LinkedList<>();
         long totalSources = 0;
 
-        // include only non-empty interview types
         for (UtmSourceCountDto utmSourceCount : utmSourceCounts) {
             if (utmSourceCount.count() > 0 && utmSourceCount.source() != null) {
                 filteredResults.add(utmSourceCount);
@@ -384,14 +332,7 @@ public class CandidateService {
 
         List<Candidate> candidates = candidateRepository.findCandidatesCreatedAfter(startDate);
 
-        Map<String, Integer> monthlyData = StatisticHelper.countByMonth(candidates);
-        double growthRate = StatisticHelper.calculateGrowthRate(monthlyData);
-
-        return new MonthlyDataDto(
-            candidates.size(),
-            growthRate,
-            monthlyData
-        );
+        return getMonthlyData(candidates);
     }
 
     public MonthlyDataDto getCandidatesFromLastSixMonths(CandidateStatus status) {
@@ -400,14 +341,44 @@ public class CandidateService {
 
         List<Candidate> candidates = candidateRepository.findCandidatesCreatedAfter(startDate, status);
 
-        Map<String, Integer> monthlyData = StatisticHelper.countByMonth(candidates);
-        double growthRate = StatisticHelper.calculateGrowthRate(monthlyData);
+        return getMonthlyData(candidates);
+    }
 
-        return new MonthlyDataDto(
-            candidates.size(),
-            growthRate,
-            monthlyData
-        );
+    private Path createTempFile(long candidateId, String candidateEmail, String fileName, MultipartFile file) {
+        try {
+            File tempFile = File.createTempFile(
+                candidateId + "-" + candidateEmail,
+                fileName.substring(fileName.lastIndexOf('.'))
+            );
+            tempFile.deleteOnExit();
+
+            Path path = tempFile.toPath();
+
+            Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+
+            logger.debug("Created temp file: {}", path);
+
+            return path;
+        } catch (IOException exception) {
+            logger.error("Failed to create temp file", exception);
+            throw new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create temp file");
+        }
+    }
+
+    private String readTempFile(String filePath, String fileName) {
+        Path path = Path.of(filePath);
+        try (InputStream resumeFileStream = Files.newInputStream(path)) {
+            return documentExtractorService.extractText(fileName, resumeFileStream);
+        } catch (IOException exception) {
+            throw new RuntimeException("Failed to extract text from resume file", exception);
+        } finally {
+            try {
+                Files.deleteIfExists(path);
+                logger.debug("Deleted temp file: {}", path);
+            } catch (IOException exception) {
+                logger.warn("Failed to delete temp file: {}", path, exception);
+            }
+        }
     }
 
     private int calculateYearsOfExperience(Map<String, String> experience) {

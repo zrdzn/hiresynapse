@@ -142,4 +142,12 @@ public class Candidate implements StatisticPoint {
         this.updatedAt = Instant.now();
     }
 
+    public Candidate(Job job, String email, CandidateStatus status, TaskStatus taskStatus, String utmSource) {
+        this.job = job;
+        this.email = email;
+        this.status = status;
+        this.taskStatus = taskStatus;
+        this.utmSource = utmSource;
+    }
+
 }

@@ -1,5 +1,7 @@
 package dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic;
 
+import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.statistic.MonthlyDataDto;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -11,6 +13,17 @@ import java.util.Map;
 public class StatisticHelper {
 
     private static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMM");
+
+    public static <T extends StatisticPoint> MonthlyDataDto getMonthlyData(List<T> list) {
+        Map<String, Integer> monthlyData = countByMonth(list);
+        double growthRate = calculateGrowthRate(monthlyData);
+
+        return new MonthlyDataDto(
+            list.size(),
+            growthRate,
+            monthlyData
+        );
+    }
 
     public static <T extends StatisticPoint> Map<String, Integer> countByMonth(List<T> list) {
         Map<String, Integer> months = fillLastSixMonths();

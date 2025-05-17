@@ -18,7 +18,6 @@ import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.LogAction;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.log.LogEntityType;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.User;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.repository.InterviewRepository;
-import dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticHelper;
 import jakarta.validation.Valid;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
@@ -31,13 +30,13 @@ import org.springframework.validation.annotation.Validated;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static dev.zrdzn.hiresynapse.hiresynapsebackend.ai.AiPrompts.INTERVIEW_QUESTIONS_PROMPT;
+import static dev.zrdzn.hiresynapse.hiresynapsebackend.shared.statistic.StatisticHelper.getMonthlyData;
 
 @Service
 @Validated
@@ -275,24 +274,15 @@ public class InterviewService {
     public List<InterviewStatusCountDto> getInterviewStatusCount() {
         List<InterviewStatusCountDto> interviewStatusCounts = interviewRepository.findInterviewStatusCounts();
 
-        List<InterviewStatusCountDto> filteredResults = new LinkedList<>();
-        long totalInterviews = 0;
+        long totalInterviews = interviewStatusCounts.stream()
+            .mapToLong(InterviewStatusCountDto::count)
+            .sum();
 
-        // include only non-empty interview statuses
-        for (InterviewStatusCountDto interviewStatusCount : interviewStatusCounts) {
-            if (interviewStatusCount.count() > 0 && interviewStatusCount.status() != null) {
-                filteredResults.add(interviewStatusCount);
-                totalInterviews += interviewStatusCount.count();
-            }
-        }
-
-        long finalTotalInterviews = totalInterviews;
-
-        return filteredResults.stream()
+        return interviewStatusCounts.stream()
             .map(interview -> new InterviewStatusCountDto(
                 interview.status(),
                 interview.count(),
-                (double) interview.count() / finalTotalInterviews * 100
+                (double) interview.count() / totalInterviews * 100
             ))
             .toList();
     }
@@ -300,24 +290,15 @@ public class InterviewService {
     public List<InterviewTypeCountDto> getInterviewTypeCount() {
         List<InterviewTypeCountDto> interviewTypeCounts = interviewRepository.findInterviewTypeCounts();
 
-        List<InterviewTypeCountDto> filteredResults = new LinkedList<>();
-        long totalInterviews = 0;
+        long totalInterviews = interviewTypeCounts.stream()
+            .mapToLong(InterviewTypeCountDto::count)
+            .sum();
 
-        // include only non-empty interview types
-        for (InterviewTypeCountDto interviewTypeCount : interviewTypeCounts) {
-            if (interviewTypeCount.count() > 0 && interviewTypeCount.interviewType() != null) {
-                filteredResults.add(interviewTypeCount);
-                totalInterviews += interviewTypeCount.count();
-            }
-        }
-
-        long finalTotalInterviews = totalInterviews;
-
-        return filteredResults.stream()
+        return interviewTypeCounts.stream()
             .map(interview -> new InterviewTypeCountDto(
                 interview.interviewType(),
                 interview.count(),
-                (double) interview.count() / finalTotalInterviews * 100
+                (double) interview.count() / totalInterviews * 100
             ))
             .toList();
     }
@@ -328,14 +309,7 @@ public class InterviewService {
 
         List<Interview> interviews = interviewRepository.findInterviewsCreatedAfter(startDate);
 
-        Map<String, Integer> monthlyData = StatisticHelper.countByMonth(interviews);
-        double growthRate = StatisticHelper.calculateGrowthRate(monthlyData);
-
-        return new MonthlyDataDto(
-            interviews.size(),
-            growthRate,
-            monthlyData
-        );
+        return getMonthlyData(interviews);
     }
 
     public MonthlyDataDto getInterviewsFromLastSixMonths(InterviewStatus status) {
@@ -344,14 +318,7 @@ public class InterviewService {
 
         List<Interview> interviews = interviewRepository.findInterviewsCreatedAfter(startDate, status);
 
-        Map<String, Integer> monthlyData = StatisticHelper.countByMonth(interviews);
-        double growthRate = StatisticHelper.calculateGrowthRate(monthlyData);
-
-        return new MonthlyDataDto(
-            interviews.size(),
-            growthRate,
-            monthlyData
-        );
+        return getMonthlyData(interviews);
     }
 
     public void deleteInterview(long requesterId, long interviewId) {
