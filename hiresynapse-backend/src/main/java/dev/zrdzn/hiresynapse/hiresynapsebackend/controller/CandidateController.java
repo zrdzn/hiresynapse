@@ -2,11 +2,14 @@ package dev.zrdzn.hiresynapse.hiresynapsebackend.controller;
 
 import dev.zrdzn.hiresynapse.hiresynapsebackend.dto.CandidateCreateDto;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.model.candidate.Candidate;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.UserPrincipal;
 import dev.zrdzn.hiresynapse.hiresynapsebackend.service.CandidateService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,6 +57,22 @@ public class CandidateController {
         Optional<Candidate> candidate = candidateService.getCandidate(candidateId);
 
         return candidate.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/{candidateId}/accept")
+    public void acceptCandidate(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable long candidateId
+    ) {
+        candidateService.acceptCandidate(principal.getUser().getId(), candidateId);
+    }
+
+    @PatchMapping("/{candidateId}/reject")
+    public void rejectCandidate(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable long candidateId
+    ) {
+        candidateService.rejectCandidate(principal.getUser().getId(), candidateId);
     }
 
 }

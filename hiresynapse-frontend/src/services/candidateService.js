@@ -32,5 +32,19 @@ export const candidateService = {
     }
 
     return api.get(`${CANDIDATES_URL}/${candidateId}`)
-  }
+  },
+  acceptCandidate: (candidateId) => {
+    if (!candidateId) {
+      throw new Error('Candidate ID is required')
+    }
+
+    return api.patch(`${CANDIDATES_URL}/${candidateId}/accept`)
+  },
+  rejectCandidate: (candidateId) => {
+    if (!candidateId) {
+      throw new Error('Candidate ID is required')
+    }
+
+    return api.patch(`${CANDIDATES_URL}/${candidateId}/reject`)
+  },
 }

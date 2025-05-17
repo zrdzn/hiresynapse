@@ -344,6 +344,44 @@ public class CandidateService {
         return getMonthlyData(candidates);
     }
 
+    public void acceptCandidate(long requesterId, long candidateId) {
+        Candidate candidate = candidateRepository.findById(candidateId)
+            .orElseThrow(() -> new ApiError(HttpStatus.NOT_FOUND, "Candidate not found"));
+
+        candidate.setStatus(CandidateStatus.ACCEPTED);
+
+        candidateRepository.save(candidate);
+
+        logService.createLog(
+            requesterId,
+            "Candidate has been accepted",
+            LogAction.UPDATE,
+            LogEntityType.CANDIDATE,
+            candidate.getId()
+        );
+
+        logger.debug("Accepted candidate: {}", candidateId);
+    }
+
+    public void rejectCandidate(long requesterId, long candidateId) {
+        Candidate candidate = candidateRepository.findById(candidateId)
+            .orElseThrow(() -> new ApiError(HttpStatus.NOT_FOUND, "Candidate not found"));
+
+        candidate.setStatus(CandidateStatus.REJECTED);
+
+        candidateRepository.save(candidate);
+
+        logService.createLog(
+            requesterId,
+            "Candidate has been rejected",
+            LogAction.UPDATE,
+            LogEntityType.CANDIDATE,
+            candidate.getId()
+        );
+
+        logger.debug("Rejected candidate: {}", candidateId);
+    }
+
     private Path createTempFile(long candidateId, String candidateEmail, String fileName, MultipartFile file) {
         try {
             File tempFile = File.createTempFile(

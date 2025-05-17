@@ -24,6 +24,7 @@ import * as icons from '@coreui/icons';
 import {candidateService} from "../../services/candidateService";
 import {capitalize} from "../../hooks/wordCapitalizeUtil";
 import {FiChevronDown, FiChevronUp} from "react-icons/fi";
+import {toast} from "react-toastify";
 
 const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
@@ -32,11 +33,11 @@ const Candidates = () => {
 
   useEffect(() => {
     candidateService.getCandidates()
-      .then((res) => {
-        setCandidates(res.data);
+      .then(response => {
+        setCandidates(response.data);
         setLoading(false);
       })
-      .catch(err => console.error(err))
+      .catch(error => console.error(error))
   }, []);
 
   if (loading) {
@@ -45,6 +46,34 @@ const Candidates = () => {
         <CSpinner />
       </div>
     );
+  }
+
+  const handleAccept = (event, candidateId) => {
+    event.preventDefault()
+
+    candidateService.acceptCandidate(candidateId)
+      .then(response => {
+        toast.success('Candidate accepted successfully')
+        setCandidates(candidates.map(candidate => candidate.id === candidateId ? {...candidate, status: 'ACCEPTED'} : candidate));
+      })
+      .catch(error => {
+        toast.error('Error accepting candidate')
+        console.error(error)
+      })
+  }
+
+  const handleReject = (event, candidateId) => {
+    event.preventDefault()
+
+    candidateService.rejectCandidate(candidateId)
+      .then(response => {
+        toast.success('Candidate rejected successfully')
+        setCandidates(candidates.map(candidate => candidate.id === candidateId ? {...candidate, status: 'REJECTED'} : candidate));
+      })
+      .catch(error => {
+        toast.error('Error rejecting candidate')
+        console.error(error)
+      })
   }
 
   return (
@@ -164,15 +193,27 @@ const Candidates = () => {
                                    value="100" />
                       </CTableDataCell>
                       <CTableDataCell className="text-end">
-                          <CButton className="text-white bg-success" size="sm">
-                            Accept
-                          </CButton>
-                          <CButton href={`/#/dashboard/recruitment/candidates/${item.id}`} className="text-white bg-primary mx-1" size="sm">
-                            Analysis
-                          </CButton>
-                          <CButton className="text-white bg-danger" size="sm">
-                            Reject
-                          </CButton>
+                        <CButton href={`/#/dashboard/recruitment/candidates/${item.id}`} className="text-white bg-primary mx-1" size="sm">
+                          Analysis
+                        </CButton>
+                        {
+                          item.status === 'PENDING' && (
+                            <>
+                              <CButton
+                                onClick={event => handleAccept(event, item.id)}
+                                className="text-white bg-success mx-1"
+                                size="sm">
+                                Accept
+                              </CButton>
+                              <CButton
+                                onClick={event => handleReject(event, item.id)}
+                                className="text-white bg-danger"
+                                size="sm">
+                                Reject
+                              </CButton>
+                            </>
+                          )
+                        }
                       </CTableDataCell>
                     </CTableRow>
                   ))}
