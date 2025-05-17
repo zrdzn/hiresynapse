@@ -18,6 +18,18 @@ export const interviewService = {
   getUnconfirmedInterviews: () => {
     return api.get(`${INTERVIEWS_URL}/unconfirmed?size=3`)
   },
+  markAsCompleted: (interviewId) => {
+    if (!interviewId) {
+      throw new Error('Interview ID is required')
+    }
+    return api.patch(`${INTERVIEWS_URL}/${interviewId}/completed`)
+  },
+  cancel: (interviewId) => {
+    if (!interviewId) {
+      throw new Error('Interview ID is required')
+    }
+    return api.patch(`${INTERVIEWS_URL}/${interviewId}/cancel`)
+  },
   deleteInterview: (interviewId) => {
     if (!interviewId) {
       throw new Error('Interview ID is required')

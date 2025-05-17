@@ -130,6 +130,34 @@ const Interviews = () => {
     );
   }
 
+  const handleMarkAsCompleted = (event, id) => {
+    event.preventDefault()
+
+    interviewService.markAsCompleted(id)
+      .then(() => {
+        toast.success('Interview marked as completed successfully')
+        setInterviews([...interviews.map(interview => interview.id === id ? {...interview, status: 'COMPLETED'} : interview)]);
+      })
+      .catch(error => {
+        toast.error('Could not mark interview as completed')
+        console.error(error)
+      })
+  }
+
+  const handleCancel = (event, id) => {
+    event.preventDefault()
+
+    interviewService.cancel(id)
+      .then(() => {
+        toast.success('Interview cancelled successfully')
+        setInterviews([...interviews.map(interview => interview.id === id ? {...interview, status: 'CANCELLED'} : interview)]);
+      })
+      .catch(error => {
+        toast.error('Could not cancel interview')
+        console.error(error)
+      })
+  }
+
   return (
     <div className="min-vh-100 d-flex flex-row">
       <div className="container-fluid">
@@ -355,6 +383,24 @@ const Interviews = () => {
                                      value="100" />
                         </CTableDataCell>
                         <CTableDataCell className="text-end">
+                          {
+                            item.status === 'SCHEDULED' && (
+                              <>
+                                <CButton
+                                  onClick={event => handleMarkAsCompleted(event, item.id)}
+                                  className="text-white bg-success"
+                                  size="sm">
+                                  Mark as completed
+                                </CButton>
+                                <CButton
+                                  onClick={event => handleCancel(event, item.id)}
+                                  className="text-white bg-danger mx-1"
+                                  size="sm">
+                                  Cancel
+                                </CButton>
+                              </>
+                            )
+                          }
                           <CDropdown alignment="end">
                             <CDropdownToggle color="light" className="rounded-1" caret={false} size="sm">
                               <FiMoreHorizontal size={16} />
