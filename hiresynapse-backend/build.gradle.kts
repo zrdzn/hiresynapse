@@ -2,6 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "3.4.4"
     id("io.spring.dependency-management") version "1.1.7"
+    id("com.coditory.integration-test") version "2.2.5"
 }
 
 group = "dev.zrdzn.hiresynapse"
@@ -34,19 +35,23 @@ dependencies {
         exclude(group = "org.slf4j", module = "slf4j-api")
         exclude(group = "org.slf4j", module = "slf4j-simple")
     }
+
     implementation("org.apache.pdfbox:pdfbox:3.0.4")
     implementation("org.apache.poi:poi:5.4.1")
     implementation("org.apache.poi:poi-ooxml:5.4.1")
     implementation("org.apache.commons:commons-text:1.13.1")
+
     annotationProcessor("org.projectlombok:lombok:1.18.38")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
-    testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:kafka")
-    testImplementation("org.testcontainers:postgresql")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.testcontainers:postgresql:1.19.3")
+    testImplementation("com.github.dasniko:testcontainers-keycloak:3.4.0")
+    testImplementation("org.testcontainers:kafka:1.20.1")
+    testImplementation("com.konghq:unirest-modules-jackson:4.4.5")
+    testImplementation("com.konghq:unirest-java-core:4.4.5")
 }
 
 tasks.withType<Test> {
