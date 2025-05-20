@@ -42,6 +42,17 @@ export const jobService = {
     }
     return api.patch(`${JOBS_URL}/${jobId}/unpublish`)
   },
+  scheduleJob: (jobId, publishAt) => {
+    if (!jobId) {
+      throw new Error('Job ID is required')
+    }
+
+    if (!publishAt) {
+      throw new Error('Job publish date is required')
+    }
+
+    return api.patch(`${JOBS_URL}/${jobId}/schedule/${publishAt}`)
+  },
   deleteJob: (jobId) => {
     if (!jobId) {
       throw new Error('Job ID is required')

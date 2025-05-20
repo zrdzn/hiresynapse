@@ -46,6 +46,8 @@ const Jobs = () => {
   const [jobStatus, setJobStatus] = useState('PUBLISHED');
   const [editJob, setEditJob] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [publishAt, setPublishAt] = useState(null)
   const [createJobRequest, setCreateJobRequest] = useState({
     title: '',
     description: '',
@@ -163,6 +165,28 @@ const Jobs = () => {
       .catch(err => {
         console.error(err)
         toast.error('Could not unpublish job')
+      })
+  }
+
+  const handleJobSchedule = (event, id) => {
+    event.preventDefault()
+
+    if (publishAt === null) {
+      toast.error("No valid date provided")
+      return
+    }
+
+    const date = new Date(publishAt)
+
+    jobService.scheduleJob(id, date.toISOString())
+      .then(() => {
+        setJobs([...jobs.map(job => job.id === id ? {...job, publishAt: date} : job)]);
+        setIsScheduleModalOpen(false)
+        toast.success('Job scheduled successfully')
+      })
+      .catch(error => {
+        console.error(error)
+        toast.error('Could not schedule job')
       })
   }
 
@@ -319,23 +343,54 @@ const Jobs = () => {
                                 <FiSend className="me-2" size={16} />
                                 Publish now
                               </CDropdownItem>
-                              <CDropdownItem href="#" className="d-flex align-items-center">
+                              <CDropdownItem
+                                onClick={event => {
+                                  event.preventDefault()
+                                  setIsScheduleModalOpen(true)
+                                }}
+                                className="d-flex align-items-center">
                                 <FiCalendar className="me-2" size={16} />
                                 Schedule
                               </CDropdownItem>
                             </CDropdownMenu>
                           </CDropdown>
                         }
-
+                        <CModal visible={isScheduleModalOpen} onClose={() => setIsScheduleModalOpen(false)}>
+                          <CModalHeader>Select schedule date</CModalHeader>
+                          <CModalBody>
+                            <div className="mb-3">
+                              <label htmlFor="dateInput" className="form-label">Select date</label>
+                              <br />
+                              <input
+                                type="date"
+                                id="start"
+                                name="trip-start"
+                                value={publishAt}
+                                onChange={event => setPublishAt(event.target.value)}
+                                min={new Date()} />
+                            </div>
+                            <CButton color="primary" onClick={event => handleJobSchedule(event, item.id)}>
+                            Schedule
+                            </CButton>
+                          </CModalBody>
+                        </CModal>
                         {
                           item.status === 'SCHEDULED' &&
                           <CDropdown alignment="end">
-                            <CDropdownToggle className="bg-warning text-white me-1 rounded-1" caret={false} size="sm">
+                            <CDropdownToggle
+                              className="bg-warning text-white me-1 rounded-1"
+                              caret={false}
+                              size="sm">
                               <FiCalendar className="me-1" size={16} />
                               Schedule
                             </CDropdownToggle>
                             <CDropdownMenu>
-                              <CDropdownItem href="#" className="d-flex align-items-center">
+                              <CDropdownItem
+                                onClick={event => {
+                                  event.preventDefault()
+                                  setIsScheduleModalOpen(true)
+                                }}
+                                className="d-flex align-items-center">
                                 <FiClock className="me-2" size={16} />
                                 Reschedule
                               </CDropdownItem>

@@ -54,6 +54,7 @@ public class JobService {
                 null,
                 null,
                 null,
+                null,
                 jobCreateDto.title(),
                 jobCreateDto.description(),
                 jobCreateDto.location(),
@@ -163,6 +164,47 @@ public class JobService {
         );
 
         logger.debug("Updated job task status for job: {} to {}", jobId, status);
+    }
+
+    public void updateJobPublishAt(long requesterId, long jobId, Instant publishAt) {
+        Job job = jobRepository.findById(jobId)
+            .orElseThrow(() -> new ApiError(HttpStatus.NOT_FOUND, "Job not found"));
+
+        job.setPublishAt(publishAt);
+        job.setStatus(JobStatus.SCHEDULED);
+
+        jobRepository.save(job);
+
+        logService.createLog(
+            requesterId,
+            "Job scheduled to be published",
+            LogAction.UPDATE,
+            LogEntityType.JOB,
+            job.getId()
+        );
+
+        logger.debug("Updated job publish at for job: {} at {}", jobId, publishAt.toString());
+    }
+
+    public void executeScheduledJobs() {
+        Instant now = Instant.now();
+
+        jobRepository.findByPublishAtBefore(now).forEach(job -> {
+            job.setPublishAt(null);
+            job.setStatus(JobStatus.PUBLISHED);
+
+            jobRepository.save(job);
+
+            logService.createLog(
+                null,
+                "Automatically published job " + job.getTitle(),
+                LogAction.UPDATE,
+                LogEntityType.JOB,
+                job.getId()
+            );
+
+            logger.debug("Automatically published job: {}", job.getId());
+        });
     }
 
     public List<Job> getJobs(Pageable pageable) {

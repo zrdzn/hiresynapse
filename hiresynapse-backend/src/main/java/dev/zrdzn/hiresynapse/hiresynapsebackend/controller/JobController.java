@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,7 +74,7 @@ public class JobController {
     }
 
     @PatchMapping("/{jobId}/publish")
-    public void updateJobStatus(
+    public void publishJob(
         @AuthenticationPrincipal UserPrincipal principal,
         @PathVariable long jobId
     ) {
@@ -86,6 +87,15 @@ public class JobController {
         @PathVariable long jobId
     ) {
         jobService.updateJobStatus(principal.getUser().getId(), jobId, JobStatus.UNPUBLISHED);
+    }
+
+    @PatchMapping("/{jobId}/schedule/{publishAt}")
+    public void scheduleJob(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable long jobId,
+        @PathVariable Instant publishAt
+    ) {
+        jobService.updateJobPublishAt(principal.getUser().getId(), jobId, publishAt);
     }
 
     @DeleteMapping("/{jobId}")

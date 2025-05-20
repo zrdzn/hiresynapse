@@ -27,4 +27,6 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     )
     List<Job> findJobsCreatedAfter(@Param("startDate") Instant startDate);
 
+    List<Job> findByPublishAtBefore(Instant now);
+
 }

@@ -44,6 +44,9 @@ public class Job implements StatisticPoint {
     @Column
     private Instant updatedAt;
 
+    @Column
+    private Instant publishAt;
+
     @NotBlank(message = "Title is required")
     @Size(min = 3, max = 50, message = "Title must be between 3 and 50 characters")
     private String title;
@@ -89,6 +92,28 @@ public class Job implements StatisticPoint {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = Instant.now();
+    }
+
+    public Job(
+        String title,
+        String description,
+        String location,
+        String salary,
+        String requiredExperience,
+        JobStatus status,
+        List<String> requirements,
+        List<String> benefits,
+        TaskStatus taskStatus
+    ) {
+        this.title = title;
+        this.description = description;
+        this.location = location;
+        this.salary = salary;
+        this.requiredExperience = requiredExperience;
+        this.status = status;
+        this.requirements = requirements;
+        this.benefits = benefits;
+        this.taskStatus = taskStatus;
     }
 
 }
