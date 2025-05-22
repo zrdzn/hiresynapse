@@ -6,13 +6,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.User;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.model.user.UserRole;
+import dev.zrdzn.hiresynapse.hiresynapsebackend.service.UserService;
 import kong.unirest.core.Unirest;
 import kong.unirest.modules.jackson.JacksonObjectMapper;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -24,31 +26,29 @@ import java.util.Map;
 @Testcontainers
 public class ApplicationRunner {
 
-    private final int port = 8080;
+    private static final int port = 8080;
 
-    private ConfigurableApplicationContext context;
-
-    @Container
-    public PostgreSQLContainer postgresqlContainer = new PostgreSQLContainer<>("postgres:latest");
+    protected static ConfigurableApplicationContext context;
+    protected static long defaultUserId = 1L;
 
     @Container
-    public KafkaContainer kafkaContainer = new KafkaContainer();
+    public static PostgreSQLContainer postgresqlContainer = new PostgreSQLContainer<>("postgres:latest");
+
+    @Container
+    public static KafkaContainer kafkaContainer = new KafkaContainer();
 
     @BeforeAll
-    public void beforeAll() {
+    public static void beforeAll() {
         postgresqlContainer.start();
         kafkaContainer.start();
-    }
 
-    @AfterAll
-    public void afterAll() {
-        postgresqlContainer.stop();
-        kafkaContainer.stop();
-    }
-
-    @BeforeEach
-    public void beforeEach() {
-        SpringApplication context = new SpringApplication(HiresynapseBackendApplication.class);
+        SpringApplication app = new SpringApplicationBuilder()
+            .sources(
+                HiresynapseBackendApplication.class,
+                TestSecurityConfig.class
+            )
+            .profiles("test")
+            .build();
 
         Unirest.config()
             .setObjectMapper(
@@ -64,8 +64,9 @@ public class ApplicationRunner {
             )
             .defaultBaseUrl("http://localhost:" + port + "/v1");
 
-        context.setDefaultProperties(
+        app.setDefaultProperties(
             Map.of(
+                "spring.profiles.active", "test",
                 "POSTGRES_URL", postgresqlContainer.getJdbcUrl(),
                 "POSTGRES_USER", postgresqlContainer.getUsername(),
                 "POSTGRES_PASSWORD", postgresqlContainer.getPassword(),
@@ -78,13 +79,35 @@ public class ApplicationRunner {
             )
         );
 
-        context.run();
+        context = app.run();
     }
 
-    @AfterEach
-    public void afterEach() {
-        if (this.context != null) {
-            this.context.close();
+    private static void setupFakeAuthentication() {
+        UserService userService = context.getBean(UserService.class);
+        User user = userService.createUser(
+            "fake",
+            "fake@mail.com",
+            "fake",
+            "user",
+            UserRole.ADMIN,
+            null
+        );
+
+        defaultUserId = user.getId();
+
+        authenticateAs(defaultUserId);
+    }
+
+    protected static void authenticateAs(long userId) {
+        TestSecurityConfig.TestAuthenticationFilter.setCurrentUserId(userId);
+    }
+
+    @AfterAll
+    public static void afterAll() {
+        postgresqlContainer.stop();
+        kafkaContainer.stop();
+        if (context != null) {
+            context.close();
         }
     }
 
