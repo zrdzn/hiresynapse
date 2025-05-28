@@ -28,9 +28,8 @@ This system uses AI to look at resumes automatically and show the most important
 - Set what skills you need for each job
 - Manage staff
 
-### Logs & Reports
+### Activity
 - Keeps records of all activities
-- Generate and export reports
 
 ## Preview
 ### Job application

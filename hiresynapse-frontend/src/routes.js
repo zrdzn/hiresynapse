@@ -10,7 +10,6 @@ const Jobs = React.lazy(() => import('./views/management/Jobs'))
 const UsersAndRoles = React.lazy(() => import('./views/management/Staff'))
 
 const ActivityLogs = React.lazy(() => import('./views/activity/ActivityLogs'))
-const Reports = React.lazy(() => import('./views/activity/Reports'))
 
 const routes = [
   { path: '/index', name: 'Dashboard', element: Dashboard, private: true },
@@ -19,8 +18,7 @@ const routes = [
   { path: '/recruitment/interviews', name: 'Interviews', element: Interviews, private: true },
   { path: '/management/jobs', name: 'Jobs', element: Jobs, private: true },
   { path: '/management/staff', name: 'Staff', element: UsersAndRoles, private: true },
-  { path: '/logs-reports/activity-logs', name: 'Activity Logs', element: ActivityLogs, private: true },
-  { path: '/logs-reports/reports', name: 'Reports', element: Reports, private: true }
+  { path: '/logs-reports/activity-logs', name: 'Activity Logs', element: ActivityLogs, private: true }
 ]
 
 export default routes

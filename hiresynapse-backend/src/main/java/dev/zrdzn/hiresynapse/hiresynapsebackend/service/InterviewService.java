@@ -243,6 +243,60 @@ public class InterviewService {
         logger.debug("Updated interview status: {} to {}", interviewId, status);
     }
 
+    public void completeInterview(
+        long requesterId,
+        long interviewId
+    ) {
+        Interview interview = interviewRepository.findById(interviewId)
+            .orElseThrow(() -> new ApiError(HttpStatus.NOT_FOUND, "Interview not found"));
+
+        if (interview.getStatus() == InterviewStatus.COMPLETED) {
+            throw new ApiError(HttpStatus.BAD_REQUEST, "Interview is already completed");
+        }
+
+        interview.setStatus(InterviewStatus.COMPLETED);
+        interview.setTaskStatus(TaskStatus.COMPLETED);
+
+        interviewRepository.save(interview);
+
+        logService.createLog(
+            requesterId,
+            "Interview has been completed",
+            LogAction.UPDATE,
+            LogEntityType.INTERVIEW,
+            interview.getId()
+        );
+
+        logger.debug("Completed interview: {}", interviewId);
+    }
+
+    public void cancelInterview(
+        long requesterId,
+        long interviewId
+    ) {
+        Interview interview = interviewRepository.findById(interviewId)
+            .orElseThrow(() -> new ApiError(HttpStatus.NOT_FOUND, "Interview not found"));
+
+        if (interview.getStatus() == InterviewStatus.CANCELLED) {
+            throw new ApiError(HttpStatus.BAD_REQUEST, "Interview is already cancelled");
+        }
+
+        interview.setStatus(InterviewStatus.CANCELLED);
+        interview.setTaskStatus(TaskStatus.COMPLETED);
+
+        interviewRepository.save(interview);
+
+        logService.createLog(
+            requesterId,
+            "Interview has been cancelled",
+            LogAction.UPDATE,
+            LogEntityType.INTERVIEW,
+            interview.getId()
+        );
+
+        logger.debug("Cancelled interview: {}", interviewId);
+    }
+
     public List<Interview> getInterviews(Pageable pageable) {
         return interviewRepository.findAllByTaskStatus(TaskStatus.COMPLETED, pageable).getContent();
     }

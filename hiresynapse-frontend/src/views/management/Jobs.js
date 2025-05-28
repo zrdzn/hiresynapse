@@ -180,13 +180,27 @@ const Jobs = () => {
 
     jobService.scheduleJob(id, date.toISOString())
       .then(() => {
-        setJobs([...jobs.map(job => job.id === id ? {...job, publishAt: date} : job)]);
+        setJobs([...jobs.map(job => job.id === id ? {...job, publishAt: date, status: "SCHEDULED"} : job)]);
         setIsScheduleModalOpen(false)
         toast.success('Job scheduled successfully')
       })
       .catch(error => {
         console.error(error)
         toast.error('Could not schedule job')
+      })
+  }
+
+  const handleJobCancelSchedule = (event, id) => {
+    event.preventDefault()
+
+    jobService.cancelSchedule(id)
+      .then(() => {
+        setJobs([...jobs.map(job => job.id === id ? {...job, publishAt: null, status: "UNPUBLISHED"} : job)]);
+        toast.success('Job schedule cancelled successfully')
+      })
+      .catch(error => {
+        console.error(error)
+        toast.error('Could not cancel schedule for job')
       })
   }
 
@@ -401,7 +415,10 @@ const Jobs = () => {
                                 <FiZap className="me-2" size={16} />
                                 Publish now
                               </CDropdownItem>
-                              <CDropdownItem href="#" className="d-flex align-items-center">
+                              <CDropdownItem
+                                className="d-flex align-items-center"
+                                onClick={event => handleJobCancelSchedule(event, item.id)}
+                              >
                                 <FiX className="me-2" size={16} />
                                 Cancel
                               </CDropdownItem>

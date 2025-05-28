@@ -22,7 +22,7 @@ export const interviewService = {
     if (!interviewId) {
       throw new Error('Interview ID is required')
     }
-    return api.patch(`${INTERVIEWS_URL}/${interviewId}/completed`)
+    return api.patch(`${INTERVIEWS_URL}/${interviewId}/complete`)
   },
   cancel: (interviewId) => {
     if (!interviewId) {

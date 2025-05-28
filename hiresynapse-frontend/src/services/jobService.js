@@ -53,6 +53,12 @@ export const jobService = {
 
     return api.patch(`${JOBS_URL}/${jobId}/schedule/${publishAt}`)
   },
+  cancelSchedule: (jobId) => {
+    if (!jobId) {
+      throw new Error('Job ID is required')
+    }
+    return api.patch(`${JOBS_URL}/${jobId}/cancel-schedule`)
+  },
   deleteJob: (jobId) => {
     if (!jobId) {
       throw new Error('Job ID is required')

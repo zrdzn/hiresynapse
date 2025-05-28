@@ -186,6 +186,26 @@ public class JobService {
         logger.debug("Updated job publish at for job: {} at {}", jobId, publishAt.toString());
     }
 
+    public void cancelJobSchedule(long requesterId, long jobId) {
+        Job job = jobRepository.findById(jobId)
+            .orElseThrow(() -> new ApiError(HttpStatus.NOT_FOUND, "Job not found"));
+
+        job.setPublishAt(null);
+        job.setStatus(JobStatus.UNPUBLISHED);
+
+        jobRepository.save(job);
+
+        logService.createLog(
+            requesterId,
+            "Job schedule has been cancelled",
+            LogAction.UPDATE,
+            LogEntityType.JOB,
+            job.getId()
+        );
+
+        logger.debug("Cancelled job schedule for job: {}", jobId);
+    }
+
     public void executeScheduledJobs() {
         Instant now = Instant.now();
 

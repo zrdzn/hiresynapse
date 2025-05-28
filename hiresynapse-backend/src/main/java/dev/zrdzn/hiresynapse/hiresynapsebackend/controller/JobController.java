@@ -98,6 +98,14 @@ public class JobController {
         jobService.updateJobPublishAt(principal.getUser().getId(), jobId, publishAt);
     }
 
+    @PatchMapping("/{jobId}/cancel-schedule")
+    public void cancelJobSchedule(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable long jobId
+    ) {
+        jobService.cancelJobSchedule(principal.getUser().getId(), jobId);
+    }
+
     @DeleteMapping("/{jobId}")
     public void deleteJob(
         @AuthenticationPrincipal UserPrincipal principal,
